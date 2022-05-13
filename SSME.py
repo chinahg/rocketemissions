@@ -66,13 +66,6 @@ P_atm = 7565 #change to fxn of altitude [Pa]
 ### COMBUSTION ###
 #############################################################################
 state = combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f)
-u_CC_exit = (mdot_ox + mdot_f)/(state.density*A_CC)
-
-plt.figure()
-plt.plot(state.t,state.T, label = 'Combustion Chamber Temperature')
-plt.xlabel("Time [s]")
-plt.ylabel("Temperature [K]")
-plt.show()
 
 #############################################################################
 ### CALL NOZZLE REACTOR FUNCTION ###
@@ -80,7 +73,7 @@ plt.show()
 # Combustion Chamber Exit to Throat # 
 #############################################################################
 
-""" #PFR (lagrangian, no surface rxns)
+#PFR (lagrangian, no surface rxns)
 #input parameters are those at station 1 (CC1)
 n = len(state.T)-1
 T_Noz1 = state.T[n]
@@ -91,14 +84,12 @@ mdot_Noz = mdot_f+mdot_ox
 
 #Nozzle Geometry
 L_Noz = 3.0734 #[m]
-A_throat = 0.05 #[m] PLACEHOLDER
-A_exit = 1 #[m] PLACEHOLDER
-CC_to_throat = 2 #[m] PLACEHOLDER
-throat_to_exit = 1.0734 #[m] PLACEHOLDER
+A_throat = 0.0599 #[m] PLACEHOLDER
+A_exit = 4.1317 #[m] PLACEHOLDER
 
 #Call nozzle function
-#Noz_states = nozzle_react(T_Noz1, P_Noz1, comp_Noz1, mdot_Noz, A_CC, A_throat, A_exit, CC_to_throat, throat_to_exit, u_CC_exit, mdot_ox, mdot_f)
- """
+Noz_states = nozzle_react(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
+
 #############################################################################
 ### SHOCKS/EXPANSION ###
 #############################################################################
@@ -109,8 +100,6 @@ M1 = 3 #need to update
 P1 = state.P[0] #Noz_states.P[n]
 T1 = state.T[0] #Noz_states.T[n]
 P2 = P_atm #Pa
-print(P1)
-print(T1)
 
 gasPlume4 = shock_calc(M1, P1, T1, P2)
 #update with gasCC composition

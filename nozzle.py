@@ -2,7 +2,6 @@ import sys
 import os
 
 sys.path.insert(0,"/home/chinahg/GCresearch/cantera/build/python")
-print(sys.path)
 
 import cantera as ct
 ct.add_directory('/user/chinahg')
@@ -14,100 +13,145 @@ import math as math
 #import matplotlib.pyplot as plt
 import scipy as sp
 import scipy.optimize
+import scipy.integrate as integrate
 
+class ReactorOde:
+    def __init__(self, gas):
+        # Parameters of the ODE system and auxiliary data are stored in the
+        # ReactorOde object.
+        self.gas = gas
+        
 
-class NozzleReactor(ct.DelegatedIdealGasReactor):
-
-    def __init__(self, *args, **kwargs): #takes arguments the user specifies when creating Reactor
-        super().__init__(*args, **kwargs)
-        self.pressure = 20000000 #PLACEHOLDER for initial pressure
+    def __call__(self, t, y):
+        """the ODE function, y' = f(t,y) """
+        nsp = 53 #number of species in mechanism
+        
+        dAdx = 1.325
+        mdot = 67.35 + 404.79
+        A_in = 0.0599
+        
+        # State vector is [T, Y_1, Y_2, ... Y_K]
+        gas.TDY = y[1], y[0], y[2:nsp+2]
+        
+        rho = gas.density
+        T = gas.T
+        Y = gas.Y
+        
+        #converging
+        #create new function to find dAdx and A etc
+        A = A_in+dAdx*t
+        
+        MW_mix = gas.mean_molecular_weight
+        Ru = ct.gas_constant
+        R = Ru/MW_mix
+        nsp = 53 #nSpecies(gas)
+        vx = mdot/(rho*A)
+        P = rho*R*T
+        
+        MW = gas.molecular_weights
+        h_k = gas.partial_molar_enthalpies/gas.molecular_weights #J/kg
+        h = gas.enthalpy_mass #average enthalpy of mixture [J/kg]
+        w = gas.net_production_rates
+        Cp = gas.cp_mass
+        
+        #gas.set_multiplier(0)
+        
+        #--------------------------------------------------------------------------
+        #---F(1), F(2) and F(3:end) are the differential equations modelling the---
+        #---density, temperature and mass fractions variations along a plug flow---
+        #-------------------------reactor------------------------------------------
+        #--------------------------------------------------------------------------
+        
+        dDdx = ((1-R/Cp)*((rho*vx)**2)*(1/A)*(dAdx) + 0*rho*R*sum(MW*w*(h_k-MW_mix*Cp*T/MW))/(vx*Cp) )/ (P*(1+vx**2/(Cp*T)) - rho*vx**2)
+       
+        dTdx = (vx*vx/(rho*Cp))*dDdx + vx*vx*(1/A)*(dAdx)/Cp - (1/(vx*rho*Cp))*sum(h_k*w)
     
-    def after_initialize(self,t0):
-        self.n_vars = self.n_vars + 2
-    
-    def after_update_state(self, y):
-    #save solution to state vector y
-        self.pressure = 0
+        dYkdx = w[0:nsp]*MW[0:nsp]/(rho*vx)
+        
+        i = 0
+        while i < nsp:
+            if dYkdx[i] < 0:
+                dYkdx[i] = 0
+            i = i+1
+            
+        return np.hstack((dDdx,dTdx,dYkdx))
 
-gas_Noz = ct.Solution('gri30.yaml')
-gas_Noz.TPX = 2000, 101325, 'H2:1'
-#Create Reactor
-Noz_reactor = NozzleReactor(gas_Noz)
-Noz_reactorNet = ct.ReactorNet([Noz_reactor])
-#SKIP REACTOR IMPLEMENTATION, JUST ASSUME WORKS FOR NOW
+def nozzle_react(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f):
 
-def Isentropic_Mach(x, A, A_throat, gamma):
-    #returns mach number given the area ratio and gamma
-    return((1/(x)*((1+((gamma-1)/2)*x**2)/(1+((gamma-1)/2)))**((gamma+1)/(2*gamma-2)))*(A/A_throat))
+    ### SET INITIAL CONDITIONS ###
+    # Temperature of gas, in K
+    T0 = T_Noz1 #CC temp
 
-# Isentropic Pressure Profile #
-def Isentropic_Pressure(Noz_reactorNet, A, i):  
-    
-    #solve for mach number at new area ratio
-    gamma = Noz_reactorNet.thermo.cp/Noz_reactorNet.cv
-    M = sp.optimize.newton(Isentropic_Mach, 2, args=(A, A_throat, gamma))
-    a = math.sqrt(gamma*8.314*Noz_reactorNet.T) #use current reactor temperature to calculate a
-    u = M*a
-    
-    #solve for new pressure at new area ratio
-    P_static = Noz_reactorNet.P #pressure after react
-    P_dyn = 0.5*Noz_reactorNet.density*u**2 #use velocity from new mach CHECK
-    P_tot = P_static + P_dyn
-    
-    #new pressure with updated area
-    P = P_tot*(1 + (gamma-1)/2 *M**2)^(-gamma/(gamma-1))
-    
-    dpdz = (P-Noz_reactorNet.P)/(delta_z)
-    return dpdz
+    # Pressure of gas, in Pa
+    P0 = P_Noz1
 
-def nozzle_geometry(z, A_CC, A_throat, A_exit, CC_to_throat, throat_to_exit):
+    # Import the gas phase, read out key species indices:
+    gas = ct.Solution('gri30.yaml')
+    ih2 = 0 #gas.speciesIndex('CH4')
+    io2  = 4 #gas.speciesIndex(gas,'O2')
+
+    nsp = 53 #nSpecies(gas)
+    x = np.zeros(nsp) #array of length number of species
+
+    # Set initial composition
+    x[ih2] = 1
+    x[io2] = 6
+
+    # Set the initial state and then equilibrate for a given enthalpy and pressure:
+    gas.TPY = T0,P0,comp_Noz1
+    gas.equilibrate('HP')
+
+    # Initial condition (spark!)
+    y0 = np.hstack((gas.density, gas.T, gas.Y))
+
+    ## REACTOR PROPERTIES ###
+    # The Dimensions and conditions of the reactor are given below
+
+    # Inlet Area, in m^2
+    A_in = A_throat
+    # Exit Area, in m^2
+    A_out = A_exit
+    # Length of the reactor, in m
+    L = L_Noz
+    # The whole reactor is divided into n small reactors
+    n = 200
+    # Mass flow rate into the reactor, in kg/s
+    mdot_calc = mdot_ox + mdot_f #ox+fuel kg/s
+
+    dAdx = abs(A_in-A_out)/L
+
+    # The whole length of the reactor is divided into n small lengths
+    dx = L/n
+
+    x_calc = np.linspace(0,L,n) #x locations in array
+    nsp = 53 #gas.nSpecies()
+
+    ### SOLVE REACTOR ###
+
+    # Integrate the equations, keeping T(t) and Y(k,t)
+    states = ct.SolutionArray(gas, 1, extra={'x': [0.0]})
+
+    ode = ReactorOde(gas)
+    solver = scipy.integrate.ode(ode)
+    solver.set_integrator('vode', method='bdf', with_jacobian=True)
+
+    y0 = np.hstack((gas.density, gas.T, gas.Y))
+    solver.set_initial_value(y0, solver.t)
+
+    i = 0
+    ### SOLVE ODES FOR INDIVIDUAL REACTOR AND SAVE STATE ###
+    while solver.t < L:
+    
+        solver.integrate(solver.t + dx)
+        gas.TDY = solver.y[1], solver.y[0], solver.y[2:nsp+2]
+        states.append(gas.state, x=solver.t)
+
+        i = i+1
+    return(states)
+
+""" def nozzle_geometry(z, A_CC, A_throat, A_exit, CC_to_throat, throat_to_exit):
     #cone nozzle geometry
     if 0 <= z <= CC_to_throat:
         nozzle_radius = math.sqrt(A_CC/math.pi) - ((math.sqrt(A_CC/math.pi)-math.sqrt(A_throat/math.pi))/CC_to_throat)*z
         nozzle_area = math.pi*nozzle_radius**2
-        return(nozzle_area)
-                                                   
-    elif CC_to_throat < z <= CC_to_throat+throat_to_exit:
-        print('past throat!')
-        nozzle_radius = math.sqrt(A_throat/math.pi) + ((math.sqrt(A_exit/math.pi)-math.sqrt(A_throat/math.pi))/throat_to_exit)*z
-        nozzle_area = math.pi*nozzle_radius**2
-        return(nozzle_area)
-    
-# Advance Reactor #
-def nozzle_react(T_Noz1, P_Noz1, comp_Noz1, mdot_Noz, A_CC, A_throat, A_exit, CC_to_throat, throat_to_exit, u_CC_exit, mdot_ox, mdot_f):
-    gas_Noz = ct.Solution('gri30.yaml') #MOVE OUTSIDE OF FXN?
-    gas_Noz.TPX = T_Noz1, P_Noz1, comp_Noz1
-
-    #Create Reactor
-    Noz_reactor = NozzleReactor(gas_Noz)
-    Noz_reactorNet = ct.ReactorNet([Noz_reactor])
-    
-    t = 0
-    dt = 0.01
-    n1 = 0
-    z = 0
-    u_Noz = u_CC_exit
-
-    while A_Noz > A_throat:
-        #need area at n1 for advance for custom function
-        Noz_reactorNet.advance(t+dt) #advance to the next time until area function returns throat area
-        
-        z = z + u_Noz * dt #Move forward to new position z, equivalent to movement during delta t
-
-        #Save the state
-        Noz_states.append(Noz_reactor.thermo.state, z = z, u_Noz = u_Noz)
-
-        #Calculate new pressure due to change in A
-        #calculate new area based on delta t and velocity
-        A_Noz = nozzle_geometry(z, A_CC, A_throat, A_exit, CC_to_throat, throat_to_exit) #returns new cross sectional area
-        #calculate new dpdz
-        Noz_reactorNet.dpdz = Isentropic_Pressure(Noz_reactorNet, A_Noz, i)
-        #recalculate speed
-        u_Noz = (mdot_ox + mdot_f)/(Noz_reactorNet.thermo.density*A_Noz)
-
-        n1 = n1+1
-
-    #save final state
-    Noz_states = ct.SolutionArray(gas_Noz, extra=['z'])
-    
-    return(Noz_states)
+        return(nozzle_area) """
