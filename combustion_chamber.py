@@ -14,13 +14,13 @@ import math as math
 import scipy as sp
 import scipy.optimize
 
-def combustion_chamber(P_CC0, mdot_ox, mdot_f):
+def combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f):
 
     #WSR
 
     #Create Gas Mixture
     gasExhaust = ct.Solution('gri30.yaml')
-    gasExhaust.TPX = 300, 2.07*10**7, 'O2: 6, H2:1'
+    gasExhaust.TPX = 1000, P_CC0, 'O2: 6, H2:1'
     gasExhaust.equilibrate('HP')
     
     gasFuel = ct.Hydrogen()
@@ -37,28 +37,31 @@ def combustion_chamber(P_CC0, mdot_ox, mdot_f):
     tankOx = ct.Reservoir(gasOx)
     CC_exhaust1 = ct.Reservoir(gasExhaust)
     
-    CC_reactor = ct.IdealGasConstPressureReactor(gasExhaust) #create CC with random gas initially filling it
+    CC_reactor = ct.IdealGasReactor(gasExhaust) #create CC with random gas initially filling it
     
     #Connect tanks to CC
     flow_controller_fuel = ct.MassFlowController(upstream=tankFuel,downstream=CC_reactor,mdot=mdot_f)
     flow_controller_ox = ct.MassFlowController(upstream=tankOx,downstream=CC_reactor,mdot=mdot_ox)
-    
+
+    #Connect CC to exhaust reservoir
+    press_controller_ox = ct.PressureController(upstream=CC_reactor, downstream=CC_exhaust1, master=flow_controller_ox, K=1e-5)
+    press_controller_fuel = ct.PressureController(upstream=CC_reactor, downstream=CC_exhaust1, master=flow_controller_fuel, K=1e-5)
+    #Add pressure controllers (fuel + ox)
+
     CC_reactorNet = ct.ReactorNet([CC_reactor])
 
     #React!
     t = 0
     del_t = 0.5
     state = ct.SolutionArray(gasExhaust, extra=['t'])
-    state.append(CC_reactor.thermo.state, t=0)
 
-    while CC_reactor.thermo.T < 3588.706: #react until 6000F
+    while t < 1:
         t = t + del_t
         CC_reactorNet.advance(t)
-        t_res = CC_reactor.mass/(mdot_f + mdot_ox)
         
-        # Extract the state of the reactor
-        state.append(CC_reactor.thermo.state, t=t)
-
-    print("Final Composition: ", gasExhaust.report())
+    # Extract the final state of the reactor
+    state.append(CC_reactor.thermo.state, t=t)
+    
+    print("Final CC Composition: ", gasExhaust.report())
     
     return(state)
