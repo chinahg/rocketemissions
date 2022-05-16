@@ -10,7 +10,7 @@ ct.__file__
 import numpy as np
 import time
 import math as math
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import scipy as sp
 import scipy.optimize
 import scipy.integrate as integrate
@@ -31,31 +31,29 @@ class ReactorOde:
         A_in = 0.0599
         
         # State vector is [T, Y_1, Y_2, ... Y_K]
-        gas.TDY = y[1], y[0], y[2:nsp+2]
+        self.gas.TDY = y[1], y[0], y[2:nsp+2]
         
-        rho = gas.density
-        T = gas.T
-        Y = gas.Y
+        rho = self.gas.density
+        T = self.gas.T
+        Y = self.gas.Y
         
         #converging
         #create new function to find dAdx and A etc
         A = A_in+dAdx*t
         
-        MW_mix = gas.mean_molecular_weight
+        MW_mix = self.gas.mean_molecular_weight
         Ru = ct.gas_constant
         R = Ru/MW_mix
         nsp = 53 #nSpecies(gas)
         vx = mdot/(rho*A)
         P = rho*R*T
         
-        MW = gas.molecular_weights
-        h_k = gas.partial_molar_enthalpies/gas.molecular_weights #J/kg
-        h = gas.enthalpy_mass #average enthalpy of mixture [J/kg]
-        w = gas.net_production_rates
-        Cp = gas.cp_mass
-        
-        #gas.set_multiplier(0)
-        
+        MW = self.gas.molecular_weights
+        h_k = self.gas.partial_molar_enthalpies/self.gas.molecular_weights #J/kg
+        h = self.gas.enthalpy_mass #average enthalpy of mixture [J/kg]
+        w = self.gas.net_production_rates
+        Cp = self.gas.cp_mass
+
         #--------------------------------------------------------------------------
         #---F(1), F(2) and F(3:end) are the differential equations modelling the---
         #---density, temperature and mass fractions variations along a plug flow---
@@ -114,16 +112,10 @@ def nozzle_react(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, md
     # Length of the reactor, in m
     L = L_Noz
     # The whole reactor is divided into n small reactors
-    n = 200
+    n = 20
     # Mass flow rate into the reactor, in kg/s
     mdot_calc = mdot_ox + mdot_f #ox+fuel kg/s
 
-    dAdx = abs(A_in-A_out)/L
-
-    # The whole length of the reactor is divided into n small lengths
-    dx = L/n
-
-    x_calc = np.linspace(0,L,n) #x locations in array
     nsp = 53 #gas.nSpecies()
 
     ### SOLVE REACTOR ###
@@ -132,13 +124,15 @@ def nozzle_react(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, md
     states = ct.SolutionArray(gas, 1, extra={'x': [0.0]})
 
     ode = ReactorOde(gas)
-    solver = scipy.integrate.ode(ode)
-    solver.set_integrator('vode', method='bdf', with_jacobian=True)
+    solver = integrate.ode(ode)
+    solver.set_integrator('vode', method='bdf', with_jacobian=True, atol=0.0001)
 
     y0 = np.hstack((gas.density, gas.T, gas.Y))
     solver.set_initial_value(y0, solver.t)
 
     i = 0
+    dx = 0.01
+
     ### SOLVE ODES FOR INDIVIDUAL REACTOR AND SAVE STATE ###
     while solver.t < L:
     
@@ -147,6 +141,8 @@ def nozzle_react(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, md
         states.append(gas.state, x=solver.t)
 
         i = i+1
+        #print(i, solver.t, states.T[i])
+
     return(states)
 
 """ def nozzle_geometry(z, A_CC, A_throat, A_exit, CC_to_throat, throat_to_exit):
