@@ -83,8 +83,10 @@ plt.savefig("rockettests/altitude10km/CC_P.png")
 #PLOT MOLE FRACTION
 plt.figure()
 
-plt.plot(state.t,state.X[:,3], label="O2") #O2
-plt.plot(state.t,state.X[:,0], label="H2") #H2
+plt.plot(state.t,state("O2").X, label="O2") #O2
+plt.plot(state.t,state("H2").X, label="H2") #H2
+plt.plot(state.t,state("H2O").X, label="H2O") #H2
+plt.plot(state.t,state("OH").X, label="OH") #H2
 
 plt.xlabel("Time [s]")
 plt.ylabel("Mole Fraction")
@@ -123,11 +125,11 @@ A_throat = 0.0599 #[m]
 A_exit = 4.1317 #[m]
 
 #Call nozzle function
-Noz_states = nozzle_react(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
+Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
 
 #PLOT AREA(X)
-dAdx = 2*3.1415*1.3 #PLACEHOLDER:CONE
-A = A_throat+dAdx*Noz_states.x
+#dAdx = 2*3.1415*1.3 #PLACEHOLDER:CONE
+#A = A_throat+dAdx*Noz_states.x
 
 plt.figure()
 L1 = plt.plot(Noz_states.x, A, color='r', label='A', lw=2)

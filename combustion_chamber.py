@@ -58,7 +58,7 @@ def combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f):
     t = 0
     state = ct.SolutionArray(gasExhaust, extra=['t','volume','enthalpy','eox','efuel'])
 
-    while t < 0.15:
+    while t < 0.2:
         #t = t + del_t
         CC_reactorNet.step()
         t = CC_reactorNet.time
@@ -67,6 +67,9 @@ def combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f):
         # Extract the state of the reactor
         state.append(CC_reactor.thermo.state, volume=CC_reactor.volume, t=t, enthalpy=gasExhaust.enthalpy_mole, efuel=gasFuel.enthalpy_mole, eox=gasOx.enthalpy_mole)
     
-    print("\nFinal CC Composition: ", gasExhaust.report(),"\n")
+    A = 0.159 #CC cross sectional area
+    n = len(state.T)
+    u = (mdot_f+mdot_ox)/(gasExhaust.density*A)
+    print("\nFinal CC Composition: ", gasExhaust.report(),"\n", u)
     
     return(state)
