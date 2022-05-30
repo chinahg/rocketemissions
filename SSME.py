@@ -266,6 +266,7 @@ dictionary = yaml.safe_load(stream)
 dictionary.append({'Shocks Mechanism':['NONE']})
 dictionary.append({'Shocks Exit Temperature [K]':[float(gasPlume4.T)]})
 dictionary.append({'Shocks Exit Pressure [Pa]':[float(gasPlume4.P)]})
+dictionary.append({'Shocks Exit Velocity [m/s]':[u]})
 
 #same as nozzle, no chemistry in shocks
 i=0
