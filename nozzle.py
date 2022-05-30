@@ -17,7 +17,7 @@ import scipy.integrate as integrate
 
 def Area_Ratio_Mach(x, A_throat, A_exit, gamma):
     #returns mach number given the turning angle
-    return((-A_throat/A_exit) + ((0.5*(gamma+1))**(-(gamma+1)/(2*gamma-2))) * ((1+((gamma-1)*0.5*x**2))**((gamma+1)/(2*gamma-2)))/x)
+    return((-A_exit/A_throat) + ((0.5*(gamma+1))**(-(gamma+1)/(2*gamma-2))) * ((1+((gamma-1)*0.5*x**2))**((gamma+1)/(2*gamma-2)))/x)
 
 class ReactorOde:
     def __init__(self, gas):
@@ -60,7 +60,7 @@ class ReactorOde:
         w = self.gas.net_production_rates # 1/s
         Cp = self.gas.cp_mass #J/kg
 
-        self.gas.set_multiplier(0)
+        #self.gas.set_multiplier(0)
 
         #--------------------------------------------------------------------------
         #---F(1), F(2) and F(3:end) are the differential equations modelling the---
@@ -86,7 +86,7 @@ def nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f):
     gamma = 1.1
 
     #Calculate incoming mach number
-    M_CC = sp.optimize.newton(Area_Ratio_Mach, 1.5, args=(A_throat, A_exit, gamma))
+    M_CC = sp.optimize.newton(Area_Ratio_Mach, 0.5, args=(A_throat, A_exit, gamma))
 
     #Calculate stagnation properties
     T_t = T*(1+(gamma-1)*0.5*M_CC**2)
@@ -95,6 +95,10 @@ def nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f):
     #Calculate properties at throat
     P_throat = P_t*(2*gamma-1)**(-gamma/(gamma-1))
     T_throat = T_t*(1/(2*gamma-1))
+
+    print("\nMACH NUMBER AT NOZZLE INLET: ", M_CC)
+    print("\nTHROAT TEMPERATURE: ", T_throat)
+    print("\nTHROAT PRESSURE: ", P_throat)
 
     #Call diverging section, return final gas state (end of nozzle)
     states_final = nozzle_div(T_throat, P_throat, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox,mdot_f)

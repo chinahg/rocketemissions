@@ -57,9 +57,32 @@ V_CC = A_CC*L_CC #Volume of CC [m3] (assuming cylinder, not tapered)
 P_CC0 = 2.07*10**7 #Chamber pressure [Pa]
 
 #Environmental Conditions
-h = 18000 #altitude [m] #REPLACE W YAML (best way to run through mult alt?)
-P_atm = 7565 #change to fxn of altitude [Pa] #REPLACE W YAML
+h = dictionary['altitude'] #altitude [m] #REPLACE W YAML (best way to run through mult alt?)
 
+if h > 25000:
+    T_atm = -131.21 + 0.00299*h + 273.14 #[K]
+    P_atm = 2.488*(T_atm/216.6)/1000 #[Pa]
+    
+elif 11000 < h < 25000:
+    T_atm = -56.46 + 273.14 #[K]
+    P_atm = 22.65*math.e**(1.73-0.000157*h)
+
+else:
+    print("ERROR: OUT OF ALTITUDE RANGE")
+
+#Calculate composition of O2, N2, and H2O
+X_N2 = 0.78084
+X_O2 = 0.2095
+
+P_N2 = P_atm*X_N2
+P_O2 = P_atm*X_O2
+
+A = np.array([[1,-P_atm],[1,0]])
+B = np.array([0,P_atm-P_N2-P_O2])
+S = np.linalg.solve(A,B)
+
+X_H2O = S[1]
+P_H2O = S[0]
 
 #############################################################################
 ### COMBUSTION ###
@@ -128,14 +151,17 @@ A_exit = 4.1317 #[m]
 Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
 
 #PLOT AREA(X)
-#dAdx = 2*3.1415*1.3 #PLACEHOLDER:CONE
-#A = A_throat+dAdx*Noz_states.x
+drdx = 0.5
+dAdx = 3.1415*2*drdx
+
+A = A_throat+dAdx*Noz_states.x
 
 plt.figure()
 L1 = plt.plot(Noz_states.x, A, color='r', label='A', lw=2)
 plt.xlabel('distance (m)')
 plt.ylabel('Area')
 plt.savefig("rockettests/altitude10km/nozzle_area.png")
+
 
 #PLOT MOLE FRACTIONS
 plt.figure()
@@ -176,15 +202,19 @@ n = len(Noz_states.x)-1
 u = mdot_Noz/(Noz_states.density[n]*A[n]) #velocity at exit of nozzle (m/s)
 gamma = 1.1
 
-print("\nNOZZLE EXIT VELOCITY: ",u, "m/s\n")
 P1 = Noz_states.P[n]
 T1 = Noz_states.T[n]
-M1 = u/math.sqrt(8.314*gamma*T1)
+M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])
 P2 = P_atm #Pa
+print("T1: \n", T1)
+print("\nNOZZLE EXIT VELOCITY: ",u, "m/s\n", "M1 = ", M1)
 
 gasPlume4 = shock_calc(M1, P1, T1, P2)
 
 print("\nINITIAL PLUME CONDITIONS: ", gasPlume4.report())
+
+### SAVE CONDITIONS IN YAML FILE
+
 
 """ #PLOT MOLE FRACTIONS
 plt.figure()
