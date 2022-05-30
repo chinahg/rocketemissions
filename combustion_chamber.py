@@ -68,7 +68,6 @@ def combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f):
         state.append(CC_reactor.thermo.state, volume=CC_reactor.volume, t=t, enthalpy=gasExhaust.enthalpy_mole, efuel=gasFuel.enthalpy_mole, eox=gasOx.enthalpy_mole)
     
     A = 0.159 #CC cross sectional area
-    n = len(state.T)
     u = (mdot_f+mdot_ox)/(gasExhaust.density*A)
     print("\nFinal CC Composition: ", gasExhaust.report(),"\n", u)
     

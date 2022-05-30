@@ -26,14 +26,6 @@ from nozzle import *
 import yaml 
 loader=Loader
 
-if __name__ == '__main__':
-
-    stream = open("foo.yaml", 'r')
-    dictionary = yaml.safe_load(stream)
-#    for key, value in dictionary.items():
-#        print (key + " : " + str(value))
-print(dictionary['altitude']) #prints value assigned to variable altitude in yaml file
-
 #############################################################################
 ### LAUNCH VEHICLE STATS ###
 #############################################################################
@@ -57,7 +49,9 @@ V_CC = A_CC*L_CC #Volume of CC [m3] (assuming cylinder, not tapered)
 P_CC0 = 2.07*10**7 #Chamber pressure [Pa]
 
 #Environmental Conditions
-h = dictionary['altitude'] #altitude [m] #REPLACE W YAML (best way to run through mult alt?)
+### USER INPUT HERE FOR ALTITUDE ######################################
+h = 20000 #altitude [m]
+#######################################################################
 
 if h > 25000:
     T_atm = -131.21 + 0.00299*h + 273.14 #[K]
@@ -81,13 +75,47 @@ A = np.array([[1,-P_atm],[1,0]])
 B = np.array([0,P_atm-P_N2-P_O2])
 S = np.linalg.solve(A,B)
 
-X_H2O = S[1]
-P_H2O = S[0]
+X_H2O = float(S[1])
+P_H2O = float(S[0])
+
+#SAVE VARIABLES FOR DOCUMENTATION
+dictionary = [{'Altitude [m]' : [h]},
+{'Temperature [K]' : [T_atm]}, {'Pressure [Pa]' : [P_atm]}, 
+{'Nitrogen Mole Fraction' : [X_N2]}, {'Oxygen Mole Fraction' : [X_O2]},
+{'Water Mole Fraction' : [X_H2O]}]
+
+#Creating YAML file to save conditions
+with open(str(h)+"_altitude.yaml", 'w') as file:
+    documents = yaml.dump(dictionary, file)
 
 #############################################################################
 ### COMBUSTION ###
 #############################################################################
 state = combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f)
+n = len(state.T) - 1
+
+#SAVE NEW STATES TO YAML
+#Load YAML file to append new data
+stream = open(str(h)+"_altitude.yaml", 'r')
+dictionary = yaml.safe_load(stream)
+dictionary.append({'Combustion Chamber Mechanism':['gri30']})
+dictionary.append({'Combustion Chamber Exit Temperature [K]':[float(state.T[n])]})
+dictionary.append({'Combustion Chamber Exit Pressure [Pa]':[float(state.P[n])]})
+
+stream2 = open('gri30.yaml', 'r')
+gri30 = yaml.safe_load(stream2)
+gri30_species = gri30['phases']
+gri30_species = gri30_species[0]['species']
+
+i=0
+while i < 53:
+    if state.X[n][i] != 0:
+        dictionary.append({str(gri30_species[i]):[float(state.X[n][i])]})
+    i = i+1
+
+#Save new dictionary to YAML file
+with open(str(h)+"_altitude.yaml", 'w') as file:
+    documents = yaml.dump(dictionary, file)
 
 #PLOT TEMPERATURE
 plt.figure()
@@ -130,7 +158,7 @@ plt.savefig("rockettests/altitude10km/CC_H.png")
 #############################################################################
 ### CALL NOZZLE REACTOR FUNCTION ###
 #############################################################################
-# Combustion Chamber Throat to Exit # 
+# Combustion Chamber Exit to Exit # 
 #############################################################################
 
 #PFR (no surface rxns)
@@ -149,6 +177,25 @@ A_exit = 4.1317 #[m]
 
 #Call nozzle function
 Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
+n = len(Noz_states.T)-1
+
+#SAVE NEW STATES TO YAML
+#Load YAML file to append new data
+stream = open(str(h)+"_altitude.yaml", 'r')
+dictionary = yaml.safe_load(stream)
+dictionary.append({'Nozzle Mechanism':['gri30']})
+dictionary.append({'Nozzle Exit Temperature [K]':[float(Noz_states.T[n])]})
+dictionary.append({'Nozzle Exit Pressure [Pa]':[float(Noz_states.P[n])]})
+
+i=0
+while i < 53:
+    if Noz_states.X[n][i] != 0:
+        dictionary.append({str(gri30_species[i]):[float(Noz_states.X[n][i])]})
+    i = i+1
+
+#Save new dictionary to YAML file
+with open(str(h)+"_altitude.yaml", 'w') as file:
+    documents = yaml.dump(dictionary, file)
 
 #PLOT AREA(X)
 drdx = 0.5
@@ -161,7 +208,6 @@ L1 = plt.plot(Noz_states.x, A, color='r', label='A', lw=2)
 plt.xlabel('distance (m)')
 plt.ylabel('Area')
 plt.savefig("rockettests/altitude10km/nozzle_area.png")
-
 
 #PLOT MOLE FRACTIONS
 plt.figure()
@@ -198,7 +244,7 @@ plt.savefig("rockettests/altitude10km/nozzle_P.png")
 #############################################################################
 
 ### 1-2 ###
-n = len(Noz_states.x)-1
+n = len(Noz_states.T)-1
 u = mdot_Noz/(Noz_states.density[n]*A[n]) #velocity at exit of nozzle (m/s)
 gamma = 1.1
 
@@ -209,12 +255,28 @@ P2 = P_atm #Pa
 print("T1: \n", T1)
 print("\nNOZZLE EXIT VELOCITY: ",u, "m/s\n", "M1 = ", M1)
 
-gasPlume4 = shock_calc(M1, P1, T1, P2)
+gasPlume4 = shock_calc(M1, P1, T1, P2) #returns gas object
 
 print("\nINITIAL PLUME CONDITIONS: ", gasPlume4.report())
 
-### SAVE CONDITIONS IN YAML FILE
+#SAVE NEW STATES TO YAML
+#Load YAML file to append new data
+stream = open(str(h)+"_altitude.yaml", 'r')
+dictionary = yaml.safe_load(stream)
+dictionary.append({'Shocks Mechanism':['NONE']})
+dictionary.append({'Shocks Exit Temperature [K]':[float(gasPlume4.T)]})
+dictionary.append({'Shocks Exit Pressure [Pa]':[float(gasPlume4.P)]})
 
+#same as nozzle, no chemistry in shocks
+i=0
+while i < 53:
+    if Noz_states.X[n][i] != 0:
+        dictionary.append({str(gri30_species[i]):[float(Noz_states.X[n][i])]})
+    i = i+1
+
+#Save new dictionary to YAML file
+with open(str(h)+"_altitude.yaml", 'w') as file:
+    documents = yaml.dump(dictionary, file)
 
 """ #PLOT MOLE FRACTIONS
 plt.figure()

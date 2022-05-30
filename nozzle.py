@@ -52,7 +52,6 @@ class ReactorOde:
         nsp = 53 #nSpecies(gas)
         vx = mdot/(rho*A)
         P = rho*R*T
-        #print(rho,R,T)
         
         MW = self.gas.molecular_weights
         h_k = self.gas.partial_molar_enthalpies/self.gas.molecular_weights #J/kg
