@@ -7,7 +7,6 @@ import ruamel.yaml
 sys.path.insert(0,"/home/chinahg/GCresearch/cantera/build/python")
 sys.path.insert(1,"/home/chinahg/GCresearch/rocketemissions")
 
-
 import cantera as ct
 ct.add_directory('/user/chinahg')
 ct.__file__

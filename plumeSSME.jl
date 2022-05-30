@@ -17,10 +17,14 @@ loader=Loader
 stream = open(str(h)+"_altitude.yaml", 'r')
 dictionary = yaml.safe_load(stream)
 
+h = dictionary["Altitude [m]"]
 u0 = dictionary["Shocks Exit Velocity [m/s]"] #initial plume velocity
 T0 = dictionary["Shocks Exit Temperature [K]"] #initial plume temperature
 χ0 = 4.e4 #tracer species
-p = dictionary["Shocks Exit Pressure [Pa]"]
+p = dictionary["Pressure [Pa]"]
+u_a = 1E-19*h^5 - 1E-14*h^4 + 4E-10*h^3 - 7E-06*h^2 + 0.0659*h + 53.792 #curve fit #a = ambient vel [m/s] (speed of rocket) UPDATE 
+T_a = dictionary["Temperature [K]"] 
+χ_a = 70. #passive tracer mixing ratio [ppm]
 
 ### CALCULATE VELOCITY AND TEMPERATURE FIELDS (VIN) ###
 
@@ -33,10 +37,6 @@ end
 for i=2:50
     Δψ[i] = 1.1*Δψ[i-1] #enlarge with each step by 1.1
 end
-
-u_a = 227. #a = ambient vel [m/s]
-T_a = 219.2 
-χ_a = 70. #passive tracer mixing ratio [ppm]
 
 Pr = 1. #prandtl number
 Le = 1.
