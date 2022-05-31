@@ -49,16 +49,16 @@ P_CC0 = 2.07*10**7 #Chamber pressure [Pa]
 
 #Environmental Conditions
 ### USER INPUT HERE FOR ALTITUDE ######################################
-h = 20000 #altitude [m]
+h = 15000 #altitude [m]
 #######################################################################
 
 if h > 25000:
     T_atm = -131.21 + 0.00299*h + 273.14 #[K]
-    P_atm = 2.488*(T_atm/216.6)/1000 #[Pa]
+    P_atm = 2.488*(T_atm/216.6)*100 #[Pa]
     
 elif 11000 < h < 25000:
     T_atm = -56.46 + 273.14 #[K]
-    P_atm = 22.65*math.e**(1.73-0.000157*h)
+    P_atm = (22.65*math.e**(1.73-0.000157*h))*1000
 
 else:
     print("ERROR: OUT OF ALTITUDE RANGE")
@@ -265,7 +265,7 @@ dictionary = yaml.safe_load(stream)
 dictionary.append({'Shocks Mechanism':['NONE']})
 dictionary.append({'Shocks Exit Temperature [K]':[float(gasPlume4.T)]})
 dictionary.append({'Shocks Exit Pressure [Pa]':[float(gasPlume4.P)]})
-dictionary.append({'Shocks Exit Velocity [m/s]':[u]})
+dictionary.append({'Shocks Exit Velocity [m/s]':[float(u)]})
 
 #same as nozzle, no chemistry in shocks
 i=0

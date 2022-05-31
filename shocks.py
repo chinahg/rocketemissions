@@ -66,7 +66,6 @@ def shock_calc(M1, P1, T1, P2):
     gasPlume4 = ct.Solution('gri30.yaml')
     gasPlume4.TP = T4, P4
     
-    
     print("M2:",M2)
     print("P2 [Pa]:",P2)
     print("T2 [K]:",T2)
