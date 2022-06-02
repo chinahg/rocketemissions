@@ -17,10 +17,10 @@ import scipy.optimize
 def shock_calc(M1, P1, T1, P2):
     gamma = 1.1
     P2P1 = P2/P1 #p2/p1
-    M1n = M1
+    M1n = math.sqrt((P2P1 + (gamma-1)/(gamma+1))*((gamma+1)/(2*gamma)))
     M2n = math.sqrt(((gamma-1)*M1n**2 +2)/(2*gamma*M1n**2 - (gamma-1))) #normal shock equation
-    print("M1n = ", M1n)
-    print("M2n = ", M2n)
+    #print("M1n = ", M1n)
+    #print("M2n = ", M2n)
 
     beta1rad = math.asin(M1n/M1) #1st shock wave angle [rad]
     beta1deg = beta1rad * 180/math.pi #rad to deg
@@ -41,7 +41,7 @@ def shock_calc(M1, P1, T1, P2):
     M3n = math.sqrt(((gamma-1)*M2n**2 +2)/(2*gamma*M2n**2 - (gamma-1))) #normal shock table
     P3P2 = (2*gamma*M2n**2 -(gamma-1))/(gamma+1) #1.86 #normal shock table
     T3T2 = ((2*gamma*M2n**2 -(gamma-1))*((gamma-1)*M2n**2 +2))/((gamma+1)**2*M2n**2) #1.2 #normal shock table
-    M3 = M3n/math.sin(beta2rad-theta1rad)
+    M3 = abs(M3n/math.sin(beta2rad-theta1rad))
     P3 = P3P2*P2
     T3 = T3T2*T2
     
@@ -66,20 +66,20 @@ def shock_calc(M1, P1, T1, P2):
     gasPlume4 = ct.Solution('gri30.yaml')
     gasPlume4.TP = T4, P4
     
-    print("M2:",M2)
-    print("P2 [Pa]:",P2)
-    print("T2 [K]:",T2)
-    print("Theta2 [deg]:",theta1deg, "\n")
-    
-    print("M3:",M3)
-    print("P3 [Pa]:",P3)
-    print("T3 [K]:",T3)
-    print("Theta3 [deg]:",theta1deg, "\n")
-    
-    print("M4:",M4)
-    print("P4 [Pa]:",P4)
-    print("T4 [K]:",T4)
-    print("Theta4 [deg]:",theta4deg)
+    #print("M2:",M2)
+    #print("P2 [Pa]:",P2)
+    #print("T2 [K]:",T2)
+    #print("Theta2 [deg]:",theta1deg, "\n")
+    #
+    #print("M3:",M3)
+    #print("P3 [Pa]:",P3)
+    #print("T3 [K]:",T3)
+    #print("Theta3 [deg]:",theta1deg, "\n")
+    #
+    #print("M4:",M4)
+    #print("P4 [Pa]:",P4)
+    #print("T4 [K]:",T4)
+    #print("Theta4 [deg]:",theta4deg)
         
     return(gasPlume4)
 

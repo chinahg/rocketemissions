@@ -2,7 +2,7 @@ import sys
 import os
 
 sys.path.insert(0,"/home/chinahg/GCresearch/cantera/build/python")
-print(sys.path)
+#print(sys.path)
 
 import cantera as ct
 ct.add_directory('/user/chinahg')
@@ -69,6 +69,6 @@ def combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f):
     
     A = 0.159 #CC cross sectional area
     u = (mdot_f+mdot_ox)/(gasExhaust.density*A)
-    print("\nFinal CC Composition: ", gasExhaust.report(),"\n", u)
+    #print("\nFinal CC Composition: ", gasExhaust.report(),"\n", u)
     
     return(state)

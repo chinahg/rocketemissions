@@ -4,30 +4,31 @@ Pkg.add("Interpolations")
 Pkg.add("Plots")
 Pkg.add("PyCall")
 Pkg.add("OrdinaryDiffEq")
-Pkg.add("yaml")
+Pkg.add("YAML")
 
 
-using Interpolations, Plots, PyCall, OrdinaryDiffEq
+using Interpolations, Plots, PyCall, OrdinaryDiffEq, YAML
 ct = pyimport("cantera")
 
-loader=Loader
+include("plumefxns.jl") 
+
+### CHOOSE ALTITUDE [m] ###
+h = 20000
+h_string = string(h)
 
 ### IMPORT SHOCK EXIT CONDITIONS ###
 #Load YAML file to append new data
-stream = open(str(h)+"_altitude.yaml", 'r')
-dictionary = yaml.safe_load(stream)
+dictionary = YAML.load_file("rockettests/"*h_string*"m/"*h_string*"_altitude.yaml")
 
-h = dictionary["Altitude [m]"]
-u0 = dictionary["Shocks Exit Velocity [m/s]"] #initial plume velocity
-T0 = dictionary["Shocks Exit Temperature [K]"] #initial plume temperature
+u0 = dictionary[27]["Shocks Exit Velocity [m/s]"][1] #initial plume velocity
+T0 = dictionary[25]["Shocks Exit Temperature [K]"][1] #initial plume temperature
 χ0 = 4.e4 #tracer species
-p = dictionary["Pressure [Pa]"]
+p = dictionary[1]["Pressure [Pa]"][1]
 u_a = 1E-19*h^5 - 1E-14*h^4 + 4E-10*h^3 - 7E-06*h^2 + 0.0659*h + 53.792 #curve fit #a = ambient vel [m/s] (speed of rocket) UPDATE 
-T_a = dictionary["Temperature [K]"] 
+T_a = dictionary[1]["Temperature [K]"][1]
 χ_a = 70. #passive tracer mixing ratio [ppm]
 
 ### CALCULATE VELOCITY AND TEMPERATURE FIELDS (VIN) ###
-
 n = 100 #n steps in x dir
 Δϕ = 0.001 * ones(n) #step size in phi
 for i=2:n
@@ -55,7 +56,7 @@ T_init[y_init .> 0.445] .= T_a
 ambient = AmbientConditions(u_a, T_a, χ_a, 1., 1., R, p, T0, u0, χ0);
 
 #Solve for T and u at all steps 
-x, y, u, T, χ_vin, ϵ = solve_exhaust_flow(u_init, T_init, ambient, n, Δϕ, Δψ, χ_init=χ_i)
+x, y, u, T, χ_vin, ϵ = solve_exhaust_flow(u_init, T_init, ambient, n, Δϕ, Δψ, χ_init=χ_init)
 
 ### COMPUTE MOLE FRACTIONS IN PLUME ###
 #O2 and CO
