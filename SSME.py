@@ -224,7 +224,7 @@ while g<len(altitudes):
     legend = ax.legend(loc='center right', shadow=True, fontsize='x-large')
     plt.savefig("rockettests/"+str(h)+"m/nozzle_X.png")
 
-    #PLOT TEMPERATURE
+    #PLOT TEMPERATURE VS ISENTROPIC
     plt.figure()
     L1 = plt.plot(Noz_states.x, Noz_states.T, color='r', label='T', lw=2)
     plt.xlabel('distance (m)')
@@ -242,6 +242,8 @@ while g<len(altitudes):
     plt.legend(L1, [line.get_label() for line in L1], loc='lower right')
     plt.savefig("rockettests/"+str(h)+"m/nozzle_P.png")
 
+    #PLOT PRESSURE VS ISENTROPIC
+
     #############################################################################
     ### SHOCKS/EXPANSION ###
     #############################################################################
@@ -255,12 +257,9 @@ while g<len(altitudes):
     T1 = Noz_states.T[n]
     M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])
     P2 = P_atm #Pa
-    #print("T1: \n", T1)
-    #print("\nNOZZLE EXIT VELOCITY: ",u, "m/s\n", "M1 = ", M1)
 
     gasPlume4 = shock_calc(M1, P1, T1, P2) #returns gas object
 
-    #print("\nINITIAL PLUME CONDITIONS: ", gasPlume4.report())
 
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
@@ -363,3 +362,5 @@ T_shock_all = [T_16000[2],
 
 ax.plot(altitudes, T_shock_all)
 plt.savefig("rockettests/multi_alt/agg_shocktemp.png")
+
+plt.close('all')

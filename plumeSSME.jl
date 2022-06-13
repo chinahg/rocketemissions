@@ -5,20 +5,37 @@ Pkg.add("Plots")
 Pkg.add("PyCall")
 Pkg.add("OrdinaryDiffEq")
 Pkg.add("YAML")
+Pkg.add("DelimitedFiles")
+Pkg.add("CSV")
+using CSV
 
 
-using Interpolations, Plots, PyCall, OrdinaryDiffEq, YAML
+using Interpolations, Plots, PyCall, OrdinaryDiffEq, YAML, DelimitedFiles
 ct = pyimport("cantera")
 
-include("plumefxns.jl") 
+include("plumefxns.jl")
 
+### IMPORT SPECIES NAMES FROM MECHANISM ###
+#gri30_species = YAML.load_file("gri30_julia.yaml")
+#gri30_species = collect(keys(gri30_species))
+#n_species = length(gri30_species) #for gri30
+#print(n_species)
+#Assign each species to an integer corresponding to its mechanism index
+#d = 1
+#while d <= n_species
+#    string2var(gri30_species[d],d)
+#    d = d+1
+#end
+#print(O2)
+n_species =53
 ### CHOOSE ALTITUDE [m] ###
 h = 20000
 h_string = string(h)
 
 ### IMPORT SHOCK EXIT CONDITIONS ###
-#Load YAML file to append new data
+#Load YAML file to save shock
 dictionary = YAML.load_file("rockettests/"*h_string*"m/"*h_string*"_altitude.yaml")
+
 
 u0 = dictionary[27]["Shocks Exit Velocity [m/s]"][1] #initial plume velocity
 T0 = dictionary[25]["Shocks Exit Temperature [K]"][1] #initial plume temperature
@@ -63,7 +80,6 @@ x, y, u, T, χ_vin, ϵ = solve_exhaust_flow(u_init, T_init, ambient, n, Δϕ, Δ
 #ppm must sum to a million
 
 #Redefine species initial conditions for multiple species
-n_species = 53 #for gri30
 χ_a = zeros(n_species)
 
 #add iimport of species here !!!!!!!!!!!!!!!!!!
@@ -140,3 +156,37 @@ for i=1:n-1 #x
     i = i+1  
 end
 println("Splitting complete")
+
+display(u_g)
+#REGRID SOLUTION
+p = 1
+xx, yy, u_g, T_g, χ_g =  regrid_solution(x, y, u, T, χ[:,:,p], 0.01)
+display(u_g)
+### PLOTTING RESULTS ###
+##Reshape data into 2D arrays to be stored in CSV
+big_length = length(xx)*length(yy)#*n_species
+
+u_g = reshape(u_g,(length(xx)*length(yy),1))
+T_g = reshape(T_g,(length(xx)*length(yy),1))
+χ_g = reshape(χ_g,(big_length,1))
+x_new = zeros(big_length,1)
+y_new = zeros(big_length,1)
+u_new = zeros(big_length,1)
+T_new = zeros(big_length,1)
+
+x_new[1:length(xx),1] = xx
+y_new[1:length(yy),1] = yy
+u_new[1:length(xx)*length(yy),1] = u_g
+T_new[1:length(xx)*length(yy),1] = T_g
+
+#Save data in dataframe
+df = DataFrame(altitude = h, 
+               x = vec(x_new),
+               y = vec(y_new),
+               u = vec(u_new),
+               T = vec(T_new),
+               χ = vec(χ_g)
+               )
+
+##Save results to CSV (plot in Jupyter)
+CSV.write("test.csv",  df)

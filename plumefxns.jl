@@ -4,9 +4,10 @@ Pkg.add("Interpolations")
 Pkg.add("Plots")
 Pkg.add("PyCall")
 Pkg.add("OrdinaryDiffEq")
+Pkg.add("DataFrames")
 
 
-using Interpolations, Plots, PyCall, OrdinaryDiffEq
+using Interpolations, Plots, PyCall, OrdinaryDiffEq, DataFrames
 ct = pyimport("cantera")
 
 "Composite type to hold ambient conditions, parameters and initial conditions"
@@ -339,16 +340,20 @@ Plots gridded solution.
 - `clabel` Label for colormap
 - `colormap` Colormap to use (e.g. :viridis)
 """
-function plot_heatmap(x, y, var, xlabel, ylabel, clabel, colormap)
+function plot_heatmap(x, y, var, xlabel, ylabel, clabel, colormap, h_string, species)
     # This is kind of hard-coded, to avoid any issues with the first entry of
     # `x` which typically is zero. 
     # If you use more horizontal grid points, the value `22` doesn't make much
     # sense either
-    heatmap(log10.(x[2:22]), 10. .* range(0, stop=1, length=size(y)[1]), clim = (0,Inf),
-     var[:,2:22], colorbar_title=clabel, size = (700, 500), dpi=300, c=colormap)
+
     xlabel!(xlabel)
     ylabel!(ylabel)
     xticks!([-2, -1, 0, 1, 2, 3], ["0.01", "0.1", "1", "10", "100", "1000"])
+    plot = heatmap(log10.(x[2:22]), 10. .* range(0, stop=1, length=size(y)[1]), clim = (0,Inf),
+    var[:,2:22], colorbar_title=clabel, size = (700, 500), dpi=300, c=colormap)
+
+    return(plot)
+    
 end
 
 
