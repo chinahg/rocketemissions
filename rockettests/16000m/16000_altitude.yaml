@@ -1,11 +1,43 @@
 - Altitude [m]:
-  - 16000
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - i8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      gD4AAAAAAAA=
   Nitrogen Mole Fraction:
   - 0.78084
   Oxygen Mole Fraction:
   - 0.2095
   Pressure [Pa]:
-  - 10362.151115706556
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      yWzCVxM9xEA=
   Temperature [K]:
   - 216.67999999999998
 - Combustion Chamber Mechanism:

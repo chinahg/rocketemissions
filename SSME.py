@@ -25,9 +25,19 @@ from shocks import *
 from nozzle import *
 
 import yaml
-loader=yaml.SafeLoader
+loader=yaml.Loader
 
-altitudes = [16000, 20000, 24000, 28000, 32000, 36000, 40000]
+altitudes = np.linspace(16000, 40000, 20, dtype = int)
+
+w = 0
+while w < len(altitudes):
+    original_umask = os.umask(0)
+    newpath = r'/home/chinahg/GCresearch/rocketemissions/rockettests/'+str(altitudes[w])+'m'
+
+    if not os.path.exists(newpath):
+        os.mkdir(newpath, 0o755)
+    w = w + 1
+
 n_species = 53
 
 #Define variables to save for each altitude
@@ -99,7 +109,7 @@ while g<len(altitudes):
     'Nitrogen Mole Fraction' : [X_N2], 'Oxygen Mole Fraction' : [X_O2]}]
 
     #Creating YAML file to save conditions
-    with open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'w') as file:
+    with open(r'rockettests/'+str(h)+'m/'+str(h)+'_altitude.yaml', 'w') as file:
         documents = yaml.dump(dictionary, file)
 
     #############################################################################
@@ -116,13 +126,13 @@ while g<len(altitudes):
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
     stream = open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'r')
-    dictionary = yaml.safe_load(stream)
+    dictionary = yaml.unsafe_load(stream)
     dictionary.append({'Combustion Chamber Mechanism':['gri30']})
     dictionary.append({'Combustion Chamber Exit Temperature [K]':[float(state.T[n])]})
     dictionary.append({'Combustion Chamber Exit Pressure [Pa]':[float(state.P[n])]})
 
     stream2 = open('gri30.yaml', 'r')
-    gri30 = yaml.safe_load(stream2)
+    gri30 = yaml.unsafe_load(stream2)
     gri30_species = gri30['phases']
     gri30_species = gri30_species[0]['species']
 
@@ -206,7 +216,7 @@ while g<len(altitudes):
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
     stream = open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'r')
-    dictionary = yaml.safe_load(stream)
+    dictionary = yaml.unsafe_load(stream)
     dictionary.append({'Nozzle Mechanism':['gri30']})
     dictionary.append({'Nozzle Exit Temperature [K]':[float(Noz_states.T[n])]})
     dictionary.append({'Nozzle Exit Pressure [Pa]':[float(Noz_states.P[n])]})
@@ -290,7 +300,7 @@ while g<len(altitudes):
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
     stream = open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'r')
-    dictionary = yaml.safe_load(stream)
+    dictionary = yaml.unsafe_load(stream)
     dictionary.append({'Shocks Mechanism':['NONE']})
     dictionary.append({'Shocks Exit Temperature [K]':[float(gasPlume4.T)]})
     dictionary.append({'Shocks Exit Pressure [Pa]':[float(gasPlume4.P)]})
@@ -335,6 +345,7 @@ while g<len(altitudes):
 ### PLOTTING ###
 
 #Load data from all altitudes
+"""
 g=0
 while g<len(altitudes):
     h = altitudes[g]
@@ -344,7 +355,7 @@ while g<len(altitudes):
 
 #PLOT TEMPERATURES (CC, NOZZLE, SHOCKS, EXIT)
 plt.ylabel('Fluid Temperature [K]')
-"""
+
 T_16000 = [dictionary_16000[2]['Combustion Chamber Exit Temperature [K]'],
             dictionary_16000[13]['Nozzle Exit Temperature [K]'],
             dictionary_16000[24]['Shocks Exit Temperature [K]']]
