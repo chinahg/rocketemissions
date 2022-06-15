@@ -1,9 +1,8 @@
-#/opt/conda/envs/lae2020/bin/python3
+#!/opt/conda/envs/lae2020/bin/python3
 
 from importlib.abc import Loader
 import sys
 import os
-import h5py
 import ruamel.yaml
 
 sys.path.insert(0,"/home/chinahg/GCresearch/cantera/build/python")
@@ -13,6 +12,7 @@ import cantera as ct
 ct.add_directory('/user/chinahg')
 ct.__file__
 
+import h5py
 import numpy as np
 import time
 import math as math
@@ -33,11 +33,11 @@ n_species = 53
 #Define variables to save for each altitude
 ambient_T = 0
 ambient_P = 0
-ambient_X = np.zeros(len(n_species))
+ambient_X = np.zeros(n_species)
 
 results_T = np.zeros(3)
 results_P = np.zeros(3)
-results_X = np.zeros(len(n_species))
+results_X = np.zeros((3,n_species))
 g=0
 
 while g<len(altitudes):
@@ -320,8 +320,8 @@ while g<len(altitudes):
     plt.savefig("rockettests/altitude10km/shocks_X.png") """
 
     #Save states for altitude
-    with h5py.File('rocket_tests/plot_data.h5', 'a') as hdf:
-        G1 = hdf.create_group(altitudes[g]+'m')
+    with h5py.File('plot_data.h5', 'a') as hdf:
+        G1 = hdf.create_group(str(altitudes[g])+'m')
         G1.create_dataset('T_a', data = ambient_T)
         G1.create_dataset('P_a', data = ambient_P)
         G1.create_dataset('X_a', data = ambient_X)
@@ -344,6 +344,7 @@ while g<len(altitudes):
 
 #PLOT TEMPERATURES (CC, NOZZLE, SHOCKS, EXIT)
 plt.ylabel('Fluid Temperature [K]')
+"""
 T_16000 = [dictionary_16000[2]['Combustion Chamber Exit Temperature [K]'],
             dictionary_16000[13]['Nozzle Exit Temperature [K]'],
             dictionary_16000[24]['Shocks Exit Temperature [K]']]
@@ -371,6 +372,7 @@ T_36000 = [dictionary_36000[2]['Combustion Chamber Exit Temperature [K]'],
 T_40000 = [dictionary_40000[2]['Combustion Chamber Exit Temperature [K]'],
             dictionary_40000[13]['Nozzle Exit Temperature [K]'],
             dictionary_40000[24]['Shocks Exit Temperature [K]']]
+"""
 
 #PLOT TEMPERATURE AT EACH STATION FOR EACH ALT
 steps = [1,2,3]
