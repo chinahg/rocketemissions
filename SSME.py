@@ -1,7 +1,9 @@
-#!/opt/conda/envs/lae2020/bin/python3
+#/opt/conda/envs/lae2020/bin/python3
+
 from importlib.abc import Loader
 import sys
 import os
+import h5py
 import ruamel.yaml
 
 sys.path.insert(0,"/home/chinahg/GCresearch/cantera/build/python")
@@ -26,6 +28,16 @@ import yaml
 loader=yaml.SafeLoader
 
 altitudes = [16000, 20000, 24000, 28000, 32000, 36000, 40000]
+n_species = 53
+
+#Define variables to save for each altitude
+ambient_T = 0
+ambient_P = 0
+ambient_X = np.zeros(len(n_species))
+
+results_T = np.zeros(3)
+results_P = np.zeros(3)
+results_X = np.zeros(len(n_species))
 g=0
 
 while g<len(altitudes):
@@ -60,27 +72,26 @@ while g<len(altitudes):
     if h > 25000:
         T_atm = -131.21 + 0.00299*h + 273.14 #[K]
         P_atm = 2.488*(T_atm/216.6)*100 #[Pa]
+        ambient_T = T_atm
+        ambient_P = P_atm
         
     elif 11000 < h < 25000:
         T_atm = -56.46 + 273.14 #[K]
         P_atm = (22.65*math.e**(1.73-0.000157*h))*1000
+        ambient_T = T_atm
+        ambient_P = P_atm
 
     else:
         print("ERROR: OUT OF ALTITUDE RANGE")
 
-    #Calculate composition of O2, N2, and H2O
+    #Calculate composition of O2, and N2
     X_N2 = 0.78084
     X_O2 = 0.2095
 
     P_N2 = P_atm*X_N2
     P_O2 = P_atm*X_O2
 
-    """ A = np.array([[1,-P_atm],[1,0]])
-    B = np.array([0,P_atm-P_N2-P_O2])
-    S = np.linalg.solve(A,B)
-
-    X_H2O = float(S[1])
-    P_H2O = float(S[0]) """
+    ambient_X = [X_N2, X_O2]
 
     #SAVE VARIABLES FOR DOCUMENTATION
     dictionary = [{'Altitude [m]' : [h],
@@ -97,6 +108,11 @@ while g<len(altitudes):
     state = combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f)
     n = len(state.T) - 1
 
+    #save CC state
+    results_T[0] = state.T[n]
+    results_P[0] = state.P[n]
+    results_X[0,:] = state.X[n]
+
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
     stream = open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'r')
@@ -111,7 +127,7 @@ while g<len(altitudes):
     gri30_species = gri30_species[0]['species']
 
     i=0
-    while i < 53:
+    while i < n_species:
         if state.X[n][i] != 0:
             dictionary.append({str(gri30_species[i]):[float(state.X[n][i])]})
         i = i+1
@@ -182,6 +198,11 @@ while g<len(altitudes):
     Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
     n = len(Noz_states.T)-1
 
+    #save Nozzle final state
+    results_T[1] = Noz_states.T[n]
+    results_P[1] = Noz_states.P[n]
+    results_X[1,:] = Noz_states.X[n]
+
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
     stream = open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'r')
@@ -191,7 +212,7 @@ while g<len(altitudes):
     dictionary.append({'Nozzle Exit Pressure [Pa]':[float(Noz_states.P[n])]})
 
     i=0
-    while i < 53:
+    while i < n_species:
         if Noz_states.X[n][i] != 0:
             dictionary.append({str(gri30_species[i]):[float(Noz_states.X[n][i])]})
         i = i+1
@@ -259,7 +280,12 @@ while g<len(altitudes):
     P2 = P_atm #Pa
 
     gasPlume4 = shock_calc(M1, P1, T1, P2) #returns gas object
+    #n = (so can plot intermediate states)
 
+    #save shock final state
+    results_T[2] = gasPlume4.T
+    results_P[2] = gasPlume4.P
+    results_X[2,:] = gasPlume4.X
 
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
@@ -272,7 +298,7 @@ while g<len(altitudes):
 
     #same as nozzle, no chemistry in shocks
     i=0
-    while i < 53:
+    while i < n_species:
         if Noz_states.X[n][i] != 0:
             dictionary.append({str(gri30_species[i]):[float(Noz_states.X[n][i])]})
         i = i+1
@@ -292,6 +318,17 @@ while g<len(altitudes):
 
     legend = ax.legend(loc='center right', shadow=True, fontsize='x-large')
     plt.savefig("rockettests/altitude10km/shocks_X.png") """
+
+    #Save states for altitude
+    with h5py.File('rocket_tests/plot_data.h5', 'a') as hdf:
+        G1 = hdf.create_group(altitudes[g]+'m')
+        G1.create_dataset('T_a', data = ambient_T)
+        G1.create_dataset('P_a', data = ambient_P)
+        G1.create_dataset('X_a', data = ambient_X)
+
+        G1.create_dataset('T', data = results_T)
+        G1.create_dataset('P', data = results_P)
+        G1.create_dataset('X', data = results_X)
 
     g = g+1
 
