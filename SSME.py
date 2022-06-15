@@ -48,6 +48,15 @@ ambient_X = np.zeros(n_species)
 results_T = np.zeros(3)
 results_P = np.zeros(3)
 results_X = np.zeros((3,n_species))
+
+#For defining h5py groups
+Gx = ["G1"]
+#delete old files
+dir = 'rockettests'
+for f in os.listdir(dir):
+    os.remove(os.path.join(dir, f))
+ 
+
 g=0
 
 while g<len(altitudes):
@@ -331,16 +340,17 @@ while g<len(altitudes):
 
     #Save states for altitude
     with h5py.File('plot_data.h5', 'a') as hdf:
-        G1 = hdf.create_group(str(altitudes[g])+'m')
-        G1.create_dataset('T_a', data = ambient_T)
-        G1.create_dataset('P_a', data = ambient_P)
-        G1.create_dataset('X_a', data = ambient_X)
+        Gx[g] = hdf.create_group(str(altitudes[g])+'m')
+        Gx[g].create_dataset('T_a', data = ambient_T)
+        Gx[g].create_dataset('P_a', data = ambient_P)
+        Gx[g].create_dataset('X_a', data = ambient_X)
 
-        G1.create_dataset('T', data = results_T)
-        G1.create_dataset('P', data = results_P)
-        G1.create_dataset('X', data = results_X)
+        Gx[g].create_dataset('T', data = results_T)
+        Gx[g].create_dataset('P', data = results_P)
+        Gx[g].create_dataset('X', data = results_X)
 
     g = g+1
+    Gx += ["G" + str(g)]
 
 ### PLOTTING ###
 
