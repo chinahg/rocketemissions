@@ -19,12 +19,23 @@ import math as math
 import matplotlib.pyplot as plt
 import scipy as sp
 import scipy.optimize
+import yaml
+import shutil
 
 from combustion_chamber import *
 from shocks import *
 from nozzle import *
 
-import yaml
+#For defining h5py groups
+Gx = ["G1"]
+#delete old files
+dir = 'rockettests'
+for f in os.listdir(dir):
+    shutil.rmtree(os.path.join(dir, f))
+
+if os.path.exists("plot_data.h5"):
+    os.remove("plot_data.h5")
+
 loader=yaml.Loader
 
 altitudes = np.linspace(16000, 40000, 20, dtype = int)
@@ -48,14 +59,6 @@ ambient_X = np.zeros(n_species)
 results_T = np.zeros(3)
 results_P = np.zeros(3)
 results_X = np.zeros((3,n_species))
-
-#For defining h5py groups
-Gx = ["G1"]
-#delete old files
-dir = 'rockettests'
-for f in os.listdir(dir):
-    os.remove(os.path.join(dir, f))
- 
 
 g=0
 
@@ -107,14 +110,11 @@ while g<len(altitudes):
     X_N2 = 0.78084
     X_O2 = 0.2095
 
-    P_N2 = P_atm*X_N2
-    P_O2 = P_atm*X_O2
-
     ambient_X = [X_N2, X_O2]
 
     #SAVE VARIABLES FOR DOCUMENTATION
-    dictionary = [{'Altitude [m]' : [h],
-    'Temperature [K]' : [T_atm], 'Pressure [Pa]' : [P_atm], 
+    dictionary = [{'Altitude [m]' : [float(h)],
+    'Temperature [K]' : [T_atm], 'Pressure [Pa]' : [float(P_atm)], 
     'Nitrogen Mole Fraction' : [X_N2], 'Oxygen Mole Fraction' : [X_O2]}]
 
     #Creating YAML file to save conditions
@@ -154,44 +154,6 @@ while g<len(altitudes):
     #Save new dictionary to YAML file
     with open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'w') as file:
         documents = yaml.dump(dictionary, file)
-
-    #PLOT TEMPERATURE
-    plt.figure()
-    plt.plot(state.t,state.T, label = 'Combustion Chamber Temperature')
-    plt.xlabel("Time [s]")
-    plt.ylabel("Temperature [K]")
-    plt.savefig("rockettests/"+str(h)+"m/CC_T.png")
-
-    #PLOT PRESSURE
-    plt.figure()
-    plt.plot(state.t,state.P, label = 'Combustion Chamber Pressure')
-    plt.xlabel("Time [s]")
-    plt.ylabel("Pressure [Pa]")
-    plt.savefig("rockettests/"+str(h)+"m/CC_P.png")
-
-    #PLOT MOLE FRACTION
-    plt.figure()
-
-    plt.plot(state.t,state("O2").X, label="O2") #O2
-    plt.plot(state.t,state("H2").X, label="H2") #H2
-    plt.plot(state.t,state("H2O").X, label="H2O") #H2
-    plt.plot(state.t,state("OH").X, label="OH") #H2
-
-    plt.xlabel("Time [s]")
-    plt.ylabel("Mole Fraction")
-    plt.legend()
-    plt.savefig("rockettests/"+str(h)+"m/CC_X.png")
-
-    #PLOT ENTHALPY
-    plt.figure()
-
-    plt.plot(state.t,state.enthalpy, label="enthalpy in reactor")
-    plt.plot(state.t,state.eox, label="enthalpy ox")
-    plt.plot(state.t,state.efuel, label="enthalpy fuel")
-    plt.xlabel("Time [s]")
-    plt.ylabel("enthalpy [J/mole]")
-    plt.legend()
-    plt.savefig("rockettests/"+str(h)+"m/CC_H.png")
 
     #############################################################################
     ### CALL NOZZLE REACTOR FUNCTION ###
@@ -240,49 +202,10 @@ while g<len(altitudes):
     with open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'w') as file:
         documents = yaml.dump(dictionary, file)
 
-    #PLOT AREA(X)
+    #Area function
     drdx = 0.5
     dAdx = 3.1415*2*drdx
-
     A = A_throat+dAdx*Noz_states.x
-
-    plt.figure()
-    L1 = plt.plot(Noz_states.x, A, color='r', label='A', lw=2)
-    plt.xlabel('distance (m)')
-    plt.ylabel('Area')
-    plt.savefig("rockettests/"+str(h)+"m/nozzle_area.png")
-
-    #PLOT MOLE FRACTIONS
-    plt.figure()
-    fig, ax = plt.subplots()
-    plt.ylabel('Mole Fraction')
-    ax.plot(Noz_states.x, Noz_states('H2O').X, 'k--', label='H2O')
-    ax.plot(Noz_states.x, Noz_states('OH').X, 'k:', label='OH')
-    ax.plot(Noz_states.x, Noz_states('H2').X, 'k', label='H2')
-    ax.plot(Noz_states.x, Noz_states('O2').X, 'k-.', label='O2')
-
-    legend = ax.legend(loc='center right', shadow=True, fontsize='x-large')
-    plt.savefig("rockettests/"+str(h)+"m/nozzle_X.png")
-
-    #PLOT TEMPERATURE VS ISENTROPIC
-    plt.figure()
-    L1 = plt.plot(Noz_states.x, Noz_states.T, color='r', label='T', lw=2)
-    plt.xlabel('distance (m)')
-    plt.ylabel('Temperature (K)')
-
-    plt.legend(L1, [line.get_label() for line in L1], loc='lower right')
-    plt.savefig("rockettests/"+str(h)+"m/nozzle_T.png")
-
-    #PLOT PRESSURE
-    plt.figure()
-    L1 = plt.plot(Noz_states.x, Noz_states.P, color='r', label='P', lw=2)
-    plt.xlabel('distance (m)')
-    plt.ylabel('Pressure (Pa)')
-
-    plt.legend(L1, [line.get_label() for line in L1], loc='lower right')
-    plt.savefig("rockettests/"+str(h)+"m/nozzle_P.png")
-
-    #PLOT PRESSURE VS ISENTROPIC
 
     #############################################################################
     ### SHOCKS/EXPANSION ###
@@ -326,18 +249,7 @@ while g<len(altitudes):
     with open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'w') as file:
         documents = yaml.dump(dictionary, file)
 
-    """ #PLOT MOLE FRACTIONS
-    plt.figure()
-    fig, ax = plt.subplots()
-    plt.ylabel('Mole Fraction')
-    ax.plot(gasPlume4.x, gasPlume4('H2O').X, 'k--', label='H2O')
-    ax.plot(gasPlume4.x, gasPlume4('OH').X, 'k:', label='OH')
-    ax.plot(gasPlume4.x, gasPlume4('H2').X, 'k', label='H2')
-    ax.plot(gasPlume4.x, gasPlume4('O2').X, 'k-.', label='O2')
-
-    legend = ax.legend(loc='center right', shadow=True, fontsize='x-large')
-    plt.savefig("rockettests/altitude10km/shocks_X.png") """
-
+   
     #Save states for altitude
     with h5py.File('plot_data.h5', 'a') as hdf:
         Gx[g] = hdf.create_group(str(altitudes[g])+'m')
@@ -352,75 +264,4 @@ while g<len(altitudes):
     g = g+1
     Gx += ["G" + str(g)]
 
-### PLOTTING ###
-
-#Load data from all altitudes
-"""
-g=0
-while g<len(altitudes):
-    h = altitudes[g]
-    with open('rockettests/'+str(h)+'m/'+str(h)+'_altitude.yaml') as f:
-        globals()['dictionary_'+str(h)] = yaml.load(f, Loader=yaml.SafeLoader)
-    g = g+1
-
-#PLOT TEMPERATURES (CC, NOZZLE, SHOCKS, EXIT)
-plt.ylabel('Fluid Temperature [K]')
-
-T_16000 = [dictionary_16000[2]['Combustion Chamber Exit Temperature [K]'],
-            dictionary_16000[13]['Nozzle Exit Temperature [K]'],
-            dictionary_16000[24]['Shocks Exit Temperature [K]']]
-
-T_20000 = [dictionary_20000[2]['Combustion Chamber Exit Temperature [K]'],
-            dictionary_20000[13]['Nozzle Exit Temperature [K]'],
-            dictionary_20000[24]['Shocks Exit Temperature [K]']]
-
-T_24000 = [dictionary_24000[2]['Combustion Chamber Exit Temperature [K]'],
-            dictionary_24000[13]['Nozzle Exit Temperature [K]'],
-            dictionary_24000[24]['Shocks Exit Temperature [K]']]
-
-T_28000 = [dictionary_28000[2]['Combustion Chamber Exit Temperature [K]'],
-            dictionary_28000[13]['Nozzle Exit Temperature [K]'],
-            dictionary_28000[24]['Shocks Exit Temperature [K]']]
-
-T_32000 = [dictionary_32000[2]['Combustion Chamber Exit Temperature [K]'],
-            dictionary_32000[13]['Nozzle Exit Temperature [K]'],
-            dictionary_32000[24]['Shocks Exit Temperature [K]']]
-
-T_36000 = [dictionary_36000[2]['Combustion Chamber Exit Temperature [K]'],
-            dictionary_36000[13]['Nozzle Exit Temperature [K]'],
-            dictionary_36000[24]['Shocks Exit Temperature [K]']]
-
-T_40000 = [dictionary_40000[2]['Combustion Chamber Exit Temperature [K]'],
-            dictionary_40000[13]['Nozzle Exit Temperature [K]'],
-            dictionary_40000[24]['Shocks Exit Temperature [K]']]
-"""
-
-#PLOT TEMPERATURE AT EACH STATION FOR EACH ALT
-steps = [1,2,3]
-fig, ax = plt.subplots()
-ax.plot(steps, T_16000, label='16 km')
-ax.plot(steps, T_20000, label='20 km')
-ax.plot(steps, T_24000, label='24 km')
-ax.plot(steps, T_28000, label='28 km')
-ax.plot(steps, T_32000, label='32 km')
-ax.plot(steps, T_36000, label='36 km')
-ax.plot(steps, T_40000, label='40 km')
-
-legend = ax.legend(loc='center right', shadow=True, fontsize='large')
-plt.savefig("rockettests/multi_alt/agg_CCtemp.png")
-
-#PLOT PLUME INITIAL TEMPERATURE FOR EACH ALT
-fig, ax = plt.subplots()
-plt.xlabel('Fluid Temperature [K]')
-T_shock_all = [T_16000[2],
-                T_20000[2],
-                T_24000[2],
-                T_28000[2],
-                T_32000[2],
-                T_36000[2],
-                T_40000[2]]
-
-ax.plot(altitudes, T_shock_all)
-plt.savefig("rockettests/multi_alt/agg_shocktemp.png")
-
-plt.close('all')
+print("done! :)")
