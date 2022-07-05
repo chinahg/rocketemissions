@@ -52,7 +52,7 @@ def shock_calc(M1, P1, T1, P2):
     nuM3 = math.sqrt((gamma+1)/(gamma-1)) *math.atan(math.sqrt(((gamma-1)/(gamma+1))*(M3**2 -1))) - math.atan(math.sqrt(M3**2 -1)) #7.56 #Prandtl-Meyer function
     nuM4 = nuM3 + theta4rad
     
-    M4 = sp.optimize.newton(Prandtl_Meyer_Mach, 1.5, args=(nuM4, gamma)) #Prandtl-Meyer TABLE ****************** USER INPUT DURING RUN, NEED TABLE
+    M4 = sp.optimize.newton(Prandtl_Meyer_Mach, 1.5, args=(nuM4, gamma)) #Prandtl-Meyer
     T4T04 = (1 + (gamma-1)/2 * M4**2)**-1 #T4/T04 from isentropic relations
     T03T3 = (1 + (gamma-1)/2 * M3**2) #T03/T3 from isentropic relations
     P3P03 = (T03T3**-1)**(gamma/(gamma-1))

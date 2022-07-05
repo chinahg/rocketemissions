@@ -38,7 +38,12 @@ if os.path.exists("plot_data.h5"):
 
 loader=yaml.Loader
 
-altitudes = np.linspace(16000, 40000, 20, dtype = int)
+#altitudes = [16000]
+upper = 40000 #[m]
+lower = 16000 #[m]
+space = int((upper-lower)/1000)+1
+
+altitudes = np.linspace(16000, 40000, space, dtype = int)
 
 w = 0
 while w < len(altitudes):
@@ -91,7 +96,7 @@ while g<len(altitudes):
     h = altitudes[g] #altitude [m]
     #######################################################################
 
-    if h > 25000:
+    if h >= 25000:
         T_atm = -131.21 + 0.00299*h + 273.14 #[K]
         P_atm = 2.488*(T_atm/216.6)*100 #[Pa]
         ambient_T = T_atm

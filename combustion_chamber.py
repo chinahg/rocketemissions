@@ -56,10 +56,11 @@ def combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f):
 
     #React!
     t = 0
-    state = ct.SolutionArray(gasExhaust, extra=['t','volume','enthalpy','eox','efuel'])
+
+    state = ct.SolutionArray(gasOx, extra=['t','volume','enthalpy','eox','efuel'])
 
     while t < 0.2:
-        #t = t + del_t
+
         CC_reactorNet.step()
         t = CC_reactorNet.time
         #CC_reactorNet.advance(t)
