@@ -150,6 +150,7 @@ def nozzle_div(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot
     
         solver.integrate(solver.t + dx)
         gas.TDY = solver.y[1], solver.y[0], solver.y[2:nsp+2]
+
         states.append(gas.state, x=solver.t)
 
         i = i+1

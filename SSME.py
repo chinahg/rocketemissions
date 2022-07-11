@@ -64,6 +64,7 @@ ambient_X = np.zeros(n_species)
 results_T = np.zeros(3)
 results_P = np.zeros(3)
 results_X = np.zeros((3,n_species))
+results_u = np.zeros(3)
 
 g=0
 
@@ -136,6 +137,7 @@ while g<len(altitudes):
     results_T[0] = state.T[n]
     results_P[0] = state.P[n]
     results_X[0,:] = state.X[n]
+    results_u[0] = (mdot_f+mdot_ox)/(state.density[n]*A_CC)
 
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
@@ -188,6 +190,7 @@ while g<len(altitudes):
     results_T[1] = Noz_states.T[n]
     results_P[1] = Noz_states.P[n]
     results_X[1,:] = Noz_states.X[n]
+    results_u[1] = (mdot_f+mdot_ox)/(Noz_states.density[n]*A_exit)
 
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
@@ -228,11 +231,13 @@ while g<len(altitudes):
 
     gasPlume4 = shock_calc(M1, P1, T1, P2) #returns gas object
     #n = (so can plot intermediate states)
-
+    
     #save shock final state
-    results_T[2] = gasPlume4.T
-    results_P[2] = gasPlume4.P
-    results_X[2,:] = gasPlume4.X
+    R = 8.3145 #universal gas constant
+    results_T[2] = gasPlume4.T[0]
+    results_P[2] = gasPlume4.P[0]
+    results_X[2,:] = gasPlume4.X[0]
+    results_u[2] = gasPlume4.M4[0]*math.sqrt(gamma*gasPlume4.P[0]/gasPlume4.density[0])
 
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
@@ -265,6 +270,7 @@ while g<len(altitudes):
         Gx[g].create_dataset('T', data = results_T)
         Gx[g].create_dataset('P', data = results_P)
         Gx[g].create_dataset('X', data = results_X)
+        Gx[g].create_dataset('u', data = results_u)
 
     g = g+1
     Gx += ["G" + str(g)]

@@ -65,6 +65,9 @@ def shock_calc(M1, P1, T1, P2):
     #Set new gas state
     gasPlume4 = ct.Solution('gri30.yaml')
     gasPlume4.TP = T4, P4
+
+    state = ct.SolutionArray(gasPlume4, extra=['M4'])
+    state.append(gasPlume4.state,M4=M4)
     
     #print("M2:",M2)
     #print("P2 [Pa]:",P2)
@@ -81,7 +84,7 @@ def shock_calc(M1, P1, T1, P2):
     #print("T4 [K]:",T4)
     #print("Theta4 [deg]:",theta4deg)
         
-    return(gasPlume4)
+    return(state)
 
 def Prandtl_Meyer_Mach(x, nuM4, gamma):
     #returns mach number given the turning angle
