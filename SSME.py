@@ -41,7 +41,7 @@ loader=yaml.Loader
 #altitudes = [16000]
 upper = 40000 #[m]
 lower = 16000 #[m]
-space = int((upper-lower)/1000)+1
+space = int((upper-lower)/250)+1 #250
 
 altitudes = np.linspace(16000, 40000, space, dtype = int)
 
@@ -66,7 +66,7 @@ results_P = np.zeros(3)
 results_X = np.zeros((3,n_species))
 results_u = np.zeros(3)
 
-g=0
+g = 0
 
 while g<len(altitudes):
 
@@ -120,7 +120,7 @@ while g<len(altitudes):
 
     #SAVE VARIABLES FOR DOCUMENTATION
     dictionary = [{'Altitude [m]' : [float(h)],
-    'Temperature [K]' : [T_atm], 'Pressure [Pa]' : [float(P_atm)], 
+    'Temperature [K]' : [float(T_atm)], 'Pressure [Pa]' : [float(P_atm)], 
     'Nitrogen Mole Fraction' : [X_N2], 'Oxygen Mole Fraction' : [X_O2]}]
 
     #Creating YAML file to save conditions
@@ -178,7 +178,7 @@ while g<len(altitudes):
     mdot_Noz = mdot_f+mdot_ox
 
     #Nozzle Geometry
-    L_Noz = 1 #[m]
+    L_Noz = 3.076 #[m]
     A_throat = 0.0599 #[m]
     A_exit = A_throat*35 #[m]
 

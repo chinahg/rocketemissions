@@ -16,7 +16,7 @@ phases:
     CO, CO2, HCO, CH2O, CH2OH, CH3O, CH3OH, C2H, C2H2, C2H3, C2H4, C2H5,
     C2H6, HCCO, CH2CO, HCCOH, N, NH, NH2, NH3, NNH, NO, NO2, N2O, HNO, CN,
     HCN, H2CN, HCNN, HCNO, HOCN, HNCO, NCO, N2, AR, C3H7, C3H8, CH2CHO,
-    CH3CHO, O3, NO3, N2O5, HNO2, HNO3, HNO4, SO, SO2, SO3, HSO3, H2SO4]
+    CH3CHO, O3, NO3, N2O5, HNO2, HNO3]
   kinetics: gas
   transport: mixture-averaged
   state: {T: 300.0, P: 1 atm}
@@ -932,13 +932,104 @@ species:
       -2.1572878e+04, 4.1030159]
     - [5.4041108, 0.011723059, -4.2263137e-06, 6.8372451e-10, -4.0984863e-14,
       -2.2593122e+04, -3.4807917]
-    note: L8/88
+    note:
   transport:
     model: gas
     geometry: nonlinear
     well-depth: 436.0
     diameter: 3.97
-    rotational-relaxation: 2.0
+    rotational-relaxation: 0.0
+#Additions
+- name: O3
+  composition: {O: 3}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200.0, 1000.0, 6000.0]
+    reference-pressure: 1 bar
+    data:
+    - [3.40738221E+00, 2.05379063E-03, 1.38486052E-05, -2.23311542E-08, 
+        9.76073226E-12, 1.58644979E+04, 8.28247580E+00]
+    - [1.23302914E+01, -1.19324783E-02, 7.98741278E-06, -1.77194552E-09, 
+      1.26075824E-13, 1.26755831E+04, -4.08823374E+01]
+    note:
+  transport:
+    model: gas
+    geometry: nonlinear
+    well-depth: 436.0
+    diameter: 3.97
+    rotational-relaxation: 0.0
+- name: NO3
+  composition: {N: 1, O: 3}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200.0, 1000.0, 6000.0]
+    reference-pressure: 1 bar
+    data:
+    - [ 2.17359310E+00, 1.04902697E-02, 1.10472650E-05, -2.81561854E-08, 
+      1.36583958E-11, 7.39219877E+03, 1.46022098E+01]
+    - [7.48347734E+00, 2.57772041E-03, -1.00945831E-06, 1.72314072E-10, 
+      -1.07154015E-14, 5.70919428E+03, -1.41618155E+01]
+    note:
+  transport:
+    model: gas
+    geometry: nonlinear
+    well-depth: 436.0
+    diameter: 3.97
+    rotational-relaxation: 0.0
+- name: N2O5
+  composition: {N: 2, O: 5}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200.0, 1000.0, 6000.0]
+    reference-pressure: 1 bar
+    data:
+    - [3.68767444E+00, 3.92120798E-02, -5.53770029E-05, 4.2009783, 
+      -1.31260710E-11, -8.30291184E+02, 1.21967866E+01]
+    - [1.31108082E+01, 4.87435791E-03, -1.87548389E-06, 3.16374121E-10, 
+      -1.95926845E-14, -3.11634700E+03, -3.46877692E+01]
+    note:
+  transport:
+    model: gas
+    geometry: nonlinear
+    well-depth: 436.0
+    diameter: 3.97
+    rotational-relaxation: 0.0
+- name: HNO2
+  composition: {H: 1, N: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200.0, 1000.0, 6000.0]
+    reference-pressure: 1 bar
+    data:
+    - [ 0.32141709E+01, 0.81276869E-02, 0.16602559E-05, -0.95285182E-08, 
+      0.48715058E-11, -0.10753237E+05, 0.98219504E+01]
+    - [ 0.57919018E+01, 0.36515212E-02, -0.12928936E-05, 0.20688716E-09, 
+      -0.12315254E-13, -0.11565589E+05, -0.40558233E+01]
+    note:
+  transport:
+    model: gas
+    geometry: nonlinear
+    well-depth: 436.0
+    diameter: 3.97
+    rotational-relaxation: 0.0
+- name: HNO3
+  composition: {H: 1, N: 1, O: 3}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200.0, 1000.0, 6000.0]
+    reference-pressure: 1 bar
+    data:
+    - [1.69329154E+00, 1.90167702E-02, -8.25176697E-06, -6.06113827E-09, 
+      4.65236978E-12, -1.74198909E+04, 1.71839838E+01]
+    - [8.03098942E+00, 4.46958589E-03, -1.72459491E-06, 2.91556153E-10, 
+      -1.80102702E-14, -1.93138183E+04, -1.62616537E+01]
+    note:
+  transport:
+    model: gas
+    geometry: nonlinear
+    well-depth: 436.0
+    diameter: 3.97
+    rotational-relaxation: 0.0
 
 reactions:
 - equation: 2 O + M <=> O2 + M  # Reaction 1
@@ -1768,4 +1859,60 @@ reactions:
   rate-constant: {A: 1.927e+13, b: -0.32, Ea: 0.0}
   #Additions
 - equation: O + O3 <=> 2 O2  # Reaction 326
-  rate-constant: {A: 1.21e-11, b: 0, Ea: 2125}
+  rate-constant: {A: 1.21e-11, b: 0.0, Ea: 2125.0}
+- equation: H + O3 <=> OH + O2  # Reaction 326
+  rate-constant: {A: 1.15e-10, b: 0.0, Ea: 436.0}
+- equation: OH + O <=> H + O2  # Reaction 326
+  rate-constant: {A: 1.83e-11, b: 0.0, Ea: -173.3}
+- equation: OH + O3 <=> HO2 + O2  # Reaction 326
+  rate-constant: {A: 1.9E-12, b: 0.0, Ea: 1000.0}
+- equation: HO2 + O3 <=> OH + 2 O2  # Reaction 326
+  rate-constant: {A: 1.4E-14, b: 0.0, Ea: 600.0}
+- equation: NO + O3 <=> NO2 + O2  # Reaction 326
+  rate-constant: {A: 2.14e-12, b: 0, Ea: 1408}
+- equation: NO + HO2 <=> OH + NO2  # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }
+- equation:  <=>   # Reaction 326
+  rate-constant: {A: , b: , Ea: }

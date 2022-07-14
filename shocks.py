@@ -21,7 +21,7 @@ def shock_calc(M1, P1, T1, P2):
     M2n = math.sqrt(((gamma-1)*M1n**2 +2)/(2*gamma*M1n**2 - (gamma-1))) #normal shock equation
     #print("M1n = ", M1n)
     #print("M2n = ", M2n)
-
+#
     beta1rad = math.asin(M1n/M1) #1st shock wave angle [rad]
     beta1deg = beta1rad * 180/math.pi #rad to deg
     
