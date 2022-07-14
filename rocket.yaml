@@ -1871,48 +1871,56 @@ reactions:
 - equation: NO + O3 <=> NO2 + O2  # Reaction 326
   rate-constant: {A: 2.14e-12, b: 0, Ea: 1408}
 - equation: NO + HO2 <=> OH + NO2  # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
-- equation:  <=>   # Reaction 326
-  rate-constant: {A: , b: , Ea: }
+  rate-constant: {A: 3.7e-12, b: 0.0, Ea: -240.0}
+- equation: NO + NO3 <=> 2 NO2  # Reaction 326
+  rate-constant: {A: 1.8e-11, b: 0.0, Ea: -110.0}
+- equation: NO2 + O3 <=> NO3 + O2  # Reaction 326
+  rate-constant: {A: 1.2e-13, b: 0.0, Ea: 2450.0}
+- equation: NO2 + NO3 <=> NO + NO2 + O2 # Reaction 326
+  rate-constant: {A: 1.9E-13, b: 0.0, Ea: 1696.0}
+- equation: NO3 + O <=> NO2 + O2  # Reaction 326
+  rate-constant: {A: 1.0E-11, b: 0.0, Ea: 0.0}
+- equation: NO3 + OH <=> HO2 + NO2  # Reaction 326
+  rate-constant: {A: 2.3E-11, b: 0.0, Ea: 0.0}
+- equation: HNO2 + O <=> OH + NO2  # Reaction 326
+  rate-constant: {A: 2.0E-11, b: 0.0, Ea: 3000.0}
+- equation: HNO2 + OH <=> NO2 + H20  # Reaction 326
+  rate-constant: {A: 1.8E-11, b: 0.0, Ea: 390.0}
+- equation: HNO3 + O <=> OH + NO3  # Reaction 326
+  rate-constant: {A: 3.0E-17, b: 0.0, Ea: 0}
+- equation: HNO3 + OH <=> NO3 + H20  # Reaction 326
+  rate-constant: {A: 4.0E-14, b: 0.0, Ea: -317.7}
+  # TABLE 2 STARTS HERE
+#- equation: O + CO (+M) <=> CO2 (+M)  # Reaction 12
+#  type: falloff
+#  low-P-rate-constant: {A: 6.02e+14, b: 0.0, Ea: 3000.0}
+#  high-P-rate-constant: {A: 1.8e+10, b: 0.0, Ea: 2385.0}
+#  efficiencies: {H2: 2.0, O2: 6.0, H2O: 6.0, CH4: 2.0, CO: 1.5, CO2: 3.5,
+#    C2H6: 3.0, AR: 0.5}
+#
+#- equation: O + O2 <=> O3  # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
+#- equation:  <=>   # Reaction 326
+#  rate-constant: {A: , b: , Ea: }
