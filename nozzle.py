@@ -29,7 +29,7 @@ class ReactorOde:
         """the ODE function, y' = f(t,y) """
         nsp = 53 #number of species in mechanism
         
-        drdx = 0.5
+        drdx = 0.0900547
         dAdx = 3.1415*2*drdx
 
         mdot = 67.35 + 404.79
@@ -85,7 +85,7 @@ def nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f):
     gamma = 1.1
 
     #Calculate incoming mach number
-    M_CC = sp.optimize.newton(Area_Ratio_Mach, 0.5, args=(A_throat, A_exit, gamma))
+    M_CC = sp.optimize.newton(Area_Ratio_Mach, 0.7, args=(A_throat, A_exit, gamma))
 
     #Calculate stagnation properties
     T_t = T*(1+(gamma-1)*0.5*M_CC**2)
@@ -127,8 +127,6 @@ def nozzle_div(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot
     ## REACTOR PROPERTIES ###
     # Length of the reactor, in m
     L = L_Noz
-
-    nsp = 53 #gas.nSpecies()
 
     ### SOLVE REACTOR ###
 

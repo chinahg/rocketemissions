@@ -96,16 +96,16 @@ while g<len(altitudes):
     ### USER INPUT HERE FOR ALTITUDE ######################################
     h = altitudes[g] #altitude [m]
     #######################################################################
-
+    #P_atm = 101325*(1 - 2.25577*(10**-5) * h)**5.25588
     if h >= 25000:
-        T_atm = -131.21 + 0.00299*h + 273.14 #[K]
-        P_atm = 2.488*(T_atm/216.6)*100 #[Pa]
+        T_atm = (-131.21 + 0.00299*h) + 273.14 #[K]
+        P_atm = (2.488 * ((T_atm)/ 216.6)**-11.388)*1000 #[Pa]
         ambient_T = T_atm
         ambient_P = P_atm
         
     elif 11000 < h < 25000:
         T_atm = -56.46 + 273.14 #[K]
-        P_atm = (22.65*math.e**(1.73-0.000157*h))*1000
+        P_atm = (22.65*10**(1.73-0.000157*h))*1000
         ambient_T = T_atm
         ambient_P = P_atm
 
@@ -178,7 +178,7 @@ while g<len(altitudes):
     mdot_Noz = mdot_f+mdot_ox
 
     #Nozzle Geometry
-    L_Noz = 3.076 #[m]
+    L_Noz = 3.7 #[m]
     A_throat = 0.0599 #[m]
     A_exit = A_throat*35 #[m]
 
@@ -224,10 +224,11 @@ while g<len(altitudes):
     u = mdot_Noz/(Noz_states.density[n]*A[n]) #velocity at exit of nozzle (m/s)
     gamma = 1.1
 
-    P1 = Noz_states.P[n]
+    P1 = 13789.5 #Noz_states.P[n] PLACEHOLDER, need design exit pressure or design alt
     T1 = Noz_states.T[n]
     M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])
     P2 = P_atm #Pa
+    print("T_atm = ", T_atm)
 
     gasPlume4 = shock_calc(M1, P1, T1, P2) #returns gas object
     #n = (so can plot intermediate states)

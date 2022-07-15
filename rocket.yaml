@@ -983,10 +983,10 @@ species:
     temperature-ranges: [200.0, 1000.0, 6000.0]
     reference-pressure: 1 bar
     data:
-    - [3.68767444E+00, 3.92120798E-02, -5.53770029E-05, 4.2009783, 
-      -1.31260710E-11, -8.30291184E+02, 1.21967866E+01]
     - [1.31108082E+01, 4.87435791E-03, -1.87548389E-06, 3.16374121E-10, 
       -1.95926845E-14, -3.11634700E+03, -3.46877692E+01]
+    - [3.68767444E+00, 3.92120798E-02, -5.53770029E-05, 4.2009783, 
+      -1.31260710E-11, -8.30291184E+02, 1.21967866E+01]
     note:
   transport:
     model: gas
@@ -1860,35 +1860,35 @@ reactions:
   #Additions
 - equation: O + O3 <=> 2 O2  # Reaction 326
   rate-constant: {A: 1.21e-11, b: 0.0, Ea: 2125.0}
-- equation: H + O3 <=> OH + O2  # Reaction 326
+- equation: H + O3 <=> OH + O2  # Reaction 327
   rate-constant: {A: 1.15e-10, b: 0.0, Ea: 436.0}
-- equation: OH + O <=> H + O2  # Reaction 326
-  rate-constant: {A: 1.83e-11, b: 0.0, Ea: -173.3}
-- equation: OH + O3 <=> HO2 + O2  # Reaction 326
+#- equation: OH + O <=> H + O2  # Reaction 328
+#  rate-constant: {A: 1.83e-11, b: 0.0, Ea: -173.3}
+- equation: OH + O3 <=> HO2 + O2  # Reaction 329
   rate-constant: {A: 1.9E-12, b: 0.0, Ea: 1000.0}
-- equation: HO2 + O3 <=> OH + 2 O2  # Reaction 326
+- equation: HO2 + O3 <=> OH + 2 O2  # Reaction 330
   rate-constant: {A: 1.4E-14, b: 0.0, Ea: 600.0}
-- equation: NO + O3 <=> NO2 + O2  # Reaction 326
+- equation: NO + O3 <=> NO2 + O2  # Reaction 331
   rate-constant: {A: 2.14e-12, b: 0, Ea: 1408}
-- equation: NO + HO2 <=> OH + NO2  # Reaction 326
-  rate-constant: {A: 3.7e-12, b: 0.0, Ea: -240.0}
-- equation: NO + NO3 <=> 2 NO2  # Reaction 326
+#- equation: NO + HO2 <=> OH + NO2  # Reaction 332
+#  rate-constant: {A: 3.7e-12, b: 0.0, Ea: -240.0}
+- equation: NO + NO3 <=> 2 NO2  # Reaction 333
   rate-constant: {A: 1.8e-11, b: 0.0, Ea: -110.0}
-- equation: NO2 + O3 <=> NO3 + O2  # Reaction 326
+- equation: NO2 + O3 <=> NO3 + O2  # Reaction 334
   rate-constant: {A: 1.2e-13, b: 0.0, Ea: 2450.0}
-- equation: NO2 + NO3 <=> NO + NO2 + O2 # Reaction 326
+- equation: NO2 + NO3 <=> NO + NO2 + O2 # Reaction 335
   rate-constant: {A: 1.9E-13, b: 0.0, Ea: 1696.0}
-- equation: NO3 + O <=> NO2 + O2  # Reaction 326
+- equation: NO3 + O <=> NO2 + O2  # Reaction 336
   rate-constant: {A: 1.0E-11, b: 0.0, Ea: 0.0}
-- equation: NO3 + OH <=> HO2 + NO2  # Reaction 326
+- equation: NO3 + OH <=> HO2 + NO2  # Reaction 337
   rate-constant: {A: 2.3E-11, b: 0.0, Ea: 0.0}
-- equation: HNO2 + O <=> OH + NO2  # Reaction 326
+- equation: HNO2 + O <=> OH + NO2  # Reaction 338
   rate-constant: {A: 2.0E-11, b: 0.0, Ea: 3000.0}
-- equation: HNO2 + OH <=> NO2 + H20  # Reaction 326
+- equation: HNO2 + OH <=> NO2 + H2O  # Reaction 339
   rate-constant: {A: 1.8E-11, b: 0.0, Ea: 390.0}
-- equation: HNO3 + O <=> OH + NO3  # Reaction 326
+- equation: HNO3 + O <=> OH + NO3  # Reaction 340
   rate-constant: {A: 3.0E-17, b: 0.0, Ea: 0}
-- equation: HNO3 + OH <=> NO3 + H20  # Reaction 326
+- equation: HNO3 + OH <=> NO3 + H2O  # Reaction 341
   rate-constant: {A: 4.0E-14, b: 0.0, Ea: -317.7}
   # TABLE 2 STARTS HERE
 #- equation: O + CO (+M) <=> CO2 (+M)  # Reaction 12
