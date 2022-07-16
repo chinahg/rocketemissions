@@ -178,9 +178,9 @@ while g<len(altitudes):
     mdot_Noz = mdot_f+mdot_ox
 
     #Nozzle Geometry
-    L_Noz = 1.5 #[m]
+    L_Noz = 2.5 #[m]
     A_throat = 0.0599 #[m]
-    A_exit = A_throat*20 #[m]
+    A_exit = A_throat*10 #[m]
 
     #Call nozzle function
     Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
@@ -211,7 +211,7 @@ while g<len(altitudes):
         documents = yaml.dump(dictionary, file)
 
     #Area function
-    drdx = 0.5
+    drdx = 0.0343202
     dAdx = 3.1415*2*drdx
     A = A_throat+dAdx*Noz_states.x
 

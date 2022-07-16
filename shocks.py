@@ -15,67 +15,74 @@ import math as math
 import scipy as sp
 import scipy.optimize
 
-def shock_calc(M1, P1, T1, P2):
+def shock_calc(M1, P1, T1, P_a):
     print("M1 = ", M1, "\n")
     print("P1 = ", P1, "\n")
     print("T1 = ", T1, "\n")
-    print("P2 = ", P2, "\n")
+    print("P_a = ", P_a, "\n")
 
     gamma = 1.1
-    #try: #1-2
-    P2P1 = P2/P1 #p2/p1
-    M1n = math.sqrt((P2P1 + (gamma-1)/(gamma+1))*((gamma+1)/(2*gamma)))
-    M2n = math.sqrt(((gamma-1)*M1n**2 +2)/(2*gamma*M1n**2 - (gamma-1))) #normal shock equation
+
+    #1-2 expansion fan (underexpanded)
+    nuM1 = 0
+    nuM2 = nuM1 + math.sqrt((gamma+1)/(gamma-1)) *math.atan(math.sqrt(((gamma-1)/(gamma+1))*(M1**2 -1))) - math.atan(math.sqrt(M1**2 -1)) #7.56 #Prandtl-Meyer function
+    M2 = sp.optimize.newton(Prandtl_Meyer_Mach, 1.5, args=(nuM2, gamma)) #Prandtl-Meyer
+    P2P1 = ((1+(gamma-1)*0.5*(M1**2))/(1+(gamma-1)*0.5*(M2**2)))**(gamma/(gamma-1))
+    P2 = P2P1*P1
+    T2T02 = (1 + (gamma-1)/2 * M2**2)**-1 #T4/T04 from isentropic relations
+    T01T1 = (1 + (gamma-1)/2 * M1**2) #T03/T3 from isentropic relations
+    P1P01 = (T01T1**-1)**(gamma/(gamma-1))
+    P01 = (P1P01/P1)**-1
+    P2P02 = (T2T02)**(gamma/(gamma-1))
+    P02 = (P2P02/P2)**-1
+    T02T01 = (P02/P01)**((gamma-1)/gamma)
+    T2 = T1*T2T02*T02T01*T01T1
+    
+    print("After exp fan")
+    print("M2 = ", M2, "\n")
+    print("P2 = ", P2, "\n")
+    print("T2 = ", T2, "\n")
+
+    #2-3 shock 1
+    P3 = P_a
+    P3P2 = P3/P2 #p2/p1
+    M2n = math.sqrt((P3P2 + (gamma-1)/(gamma+1))*((gamma+1)/(2*gamma)))
+    M3n = math.sqrt(((gamma-1)*M2n**2 +2)/(2*gamma*M2n**2 - (gamma-1))) #normal shock equation
 #   
-    beta1rad = math.asin(M1n/M1) #1st shock wave angle [rad]
-    beta1deg = beta1rad * 180/math.pi #rad to deg
+    beta2rad = math.asin(M2n/M2) #1st shock wave angle [rad]
+    beta2deg = beta2rad * 180/math.pi #rad to deg
 
     #theta-beta-mach relation
-    theta1rad = math.atan(2*(math.tan(beta1rad)**-1)*((M1n**2 - 1)/(M1**2 * (gamma+math.cos(2*beta1rad)) +2))) #1st shock wave deflection angle [deg]
-    theta1deg = theta1rad*180/math.pi
+    theta2rad = math.atan(2*(math.tan(beta2rad)**-1)*((M2n**2 - 1)/(M2**2 * (gamma+math.cos(2*beta2rad)) +2))) #1st shock wave deflection angle [deg]
+    theta2deg = theta2rad*180/math.pi
 
-    M2 = M2n/math.sin(beta1rad-theta1rad) #Mach number after 1st shock
-    T2T1 = ((2*gamma*M1n**2 -(gamma-1))*((gamma-1)*M1n**2 +2))/((gamma+1)**2*M1n**2) #1.29 #T2/T1 from normal shock
-    T2 = T1*T2T1      
 
-    #try: #2-3
-    beta2rad = sp.optimize.newton(TBM_Beta, 0.15, args=(theta1rad,M2,gamma))
+    M3 = M3n/math.sin(beta2rad-theta2rad) #Mach number after 1st shock
+    T3T2 = ((2*gamma*M2n**2 -(gamma-1))*((gamma-1)*M2n**2 +2))/((gamma+1)**2*M2n**2) #1.29 #T2/T1 from normal shock
+    T3 = T2*T3T2     
 
-    ### 2-3 ###
-    beta2deg = beta2rad*180/math.pi
-    M2n = M2*math.sin(beta2rad)
-    M3n = math.sqrt(((gamma-1)*M2n**2 +2)/(2*gamma*M2n**2 - (gamma-1))) #normal shock table
+    print("After shock")
+    print("M3 = ", M3, "\n")
+    print("P3 = ", P3, "\n")
+    print("T3 = ", T3, "\n")
+   #### 2-3 ###
+   #beta2deg = beta2rad*180/math.pi
+   #M2n = M2*math.sin(beta2rad)
+   #M3n = math.sqrt(((gamma-1)*M2n**2 +2)/(2*gamma*M2n**2 - (gamma-1))) #normal shock table
 
-    P3P2 = (2*gamma*M2n**2 -(gamma-1))/(gamma+1) #normal shock table
-    T3T2 = ((2*gamma*M2n**2 -(gamma-1))*((gamma-1)*M2n**2 +2))/((gamma+1)**2*M2n**2) #1.2 #normal shock table
-    M3 = abs(M3n/math.sin(beta2rad-theta1rad))
-    
-    P3 = P3P2*P2
-    T3 = T3T2*T2
-
-    #try: #3-4
-    ### 3-4 ###
-    P4 = P2
-    theta4deg = theta1deg #check why, make4 sure should be in deg not rad
-    theta4rad = theta1rad
-    nuM3 = math.sqrt((gamma+1)/(gamma-1)) *math.atan(math.sqrt(((gamma-1)/(gamma+1))*(M3**2 -1))) - math.atan(math.sqrt(M3**2 -1)) #7.56 #Prandtl-Meyer function
-    nuM4 = nuM3 + theta4rad
-    M4 = sp.optimize.newton(Prandtl_Meyer_Mach, 1.5, args=(nuM4, gamma)) #Prandtl-Meyer
-    T4T04 = (1 + (gamma-1)/2 * M4**2)**-1 #T4/T04 from isentropic relations
-    T03T3 = (1 + (gamma-1)/2 * M3**2) #T03/T3 from isentropic relations
-    P3P03 = (T03T3**-1)**(gamma/(gamma-1))
-    P03 = (P3P03/P3)**-1
-    P4P04 = (T4T04)**(gamma/(gamma-1))
-    P04 = (P4P04/P4)**-1
-    T04T03 = (P04/P03)**((gamma-1)/gamma)
-    T4 = T3*T4T04*T04T03*T03T3
+   #P3P2 = (2*gamma*M2n**2 -(gamma-1))/(gamma+1) #normal shock table
+   #T3T2 = ((2*gamma*M2n**2 -(gamma-1))*((gamma-1)*M2n**2 +2))/((gamma+1)**2*M2n**2) #1.2 #normal shock table
+   #M3 = abs(M3n/math.sin(beta2rad-theta1rad))
+   #
+   #P3 = P3P2*P2
+   #T3 = T3T2*T2
     
     #Set new gas state
     gasPlume4 = ct.Solution('gri30.yaml')
-    gasPlume4.TP = T4, P4
+    gasPlume4.TP = T3, P3
 
     state = ct.SolutionArray(gasPlume4, extra=['M4'])
-    state.append(gasPlume4.state,M4=M4)
+    state.append(gasPlume4.state,M4=M3)
     
     #print("M2:",M2)
     #print("P2 [Pa]:",P2)
