@@ -29,7 +29,7 @@ class ReactorOde:
         """the ODE function, y' = f(t,y) """
         nsp = 53 #number of species in mechanism
         
-        drdx = 0.0900547
+        drdx = 0.1208
         dAdx = 3.1415*2*drdx
 
         mdot = 67.35 + 404.79

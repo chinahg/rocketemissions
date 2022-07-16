@@ -178,9 +178,9 @@ while g<len(altitudes):
     mdot_Noz = mdot_f+mdot_ox
 
     #Nozzle Geometry
-    L_Noz = 3.7 #[m]
+    L_Noz = 1.5 #[m]
     A_throat = 0.0599 #[m]
-    A_exit = A_throat*35 #[m]
+    A_exit = A_throat*20 #[m]
 
     #Call nozzle function
     Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
@@ -228,7 +228,6 @@ while g<len(altitudes):
     T1 = Noz_states.T[n]
     M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])
     P2 = P_atm #Pa
-    print("T_atm = ", T_atm)
 
     gasPlume4 = shock_calc(M1, P1, T1, P2) #returns gas object
     #n = (so can plot intermediate states)

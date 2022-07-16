@@ -36,14 +36,7 @@ def shock_calc(M1, P1, T1, P2):
 
     M2 = M2n/math.sin(beta1rad-theta1rad) #Mach number after 1st shock
     T2T1 = ((2*gamma*M1n**2 -(gamma-1))*((gamma-1)*M1n**2 +2))/((gamma+1)**2*M1n**2) #1.29 #T2/T1 from normal shock
-    T2 = T1*T2T1
-    #except:
-    #    print("1", T1, P1, M1)
-    #    gasPlume4 = ct.Solution('gri30.yaml')
-    #    gasPlume4.TP = T1, P1
-    #    state = ct.SolutionArray(gasPlume4, extra=['M4'])
-    #    state.append(gasPlume4.state,M4=M1)
-    #    return(state)        
+    T2 = T1*T2T1      
 
     #try: #2-3
     beta2rad = sp.optimize.newton(TBM_Beta, 0.15, args=(theta1rad,M2,gamma))
@@ -59,14 +52,7 @@ def shock_calc(M1, P1, T1, P2):
     
     P3 = P3P2*P2
     T3 = T3T2*T2
-    #except:
-    #    print("2", T2, P2, M2)
-    #    gasPlume4 = ct.Solution('gri30.yaml')
-    #    gasPlume4.TP = T2, P2
-    #    state = ct.SolutionArray(gasPlume4, extra=['M4'])
-    #    state.append(gasPlume4.state,M4=M2)
-    #    return(state)
-    #
+
     #try: #3-4
     ### 3-4 ###
     P4 = P2
@@ -83,13 +69,6 @@ def shock_calc(M1, P1, T1, P2):
     P04 = (P4P04/P4)**-1
     T04T03 = (P04/P03)**((gamma-1)/gamma)
     T4 = T3*T4T04*T04T03*T03T3
-    #except:
-    #    print("3", T3, P3, M3)
-    #    gasPlume4 = ct.Solution('gri30.yaml')
-    #    gasPlume4.TP = T3, P3
-    #    state = ct.SolutionArray(gasPlume4, extra=['M4'])
-    #    state.append(gasPlume4.state,M4=M3)
-    #    return(state)
     
     #Set new gas state
     gasPlume4 = ct.Solution('gri30.yaml')
