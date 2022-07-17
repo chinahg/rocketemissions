@@ -178,9 +178,9 @@ while g<len(altitudes):
     mdot_Noz = mdot_f+mdot_ox
 
     #Nozzle Geometry
-    L_Noz = 2.5 #[m]
+    L_Noz = 0.01 #[m]
     A_throat = 0.0599 #[m]
-    A_exit = A_throat*10 #[m]
+    A_exit = A_throat*35 #[m]
 
     #Call nozzle function
     Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
@@ -211,9 +211,12 @@ while g<len(altitudes):
         documents = yaml.dump(dictionary, file)
 
     #Area function
-    drdx = 0.0343202
-    dAdx = 3.1415*2*drdx
-    A = A_throat+dAdx*Noz_states.x
+    A_throat = 0.0599
+    dAdx = np.zeros(len(Noz_states.x)-1)
+    A = np.zeros(len(Noz_states.x)-1)
+    t = 0
+    for t in range(n):
+        A[t] = 3.1415*(np.sqrt(Noz_states.x[t])+A_throat)**2
 
     #############################################################################
     ### SHOCKS/EXPANSION ###
@@ -221,9 +224,10 @@ while g<len(altitudes):
 
     ### 1-2 ###
     n = len(Noz_states.T)-1
-    u = mdot_Noz/(Noz_states.density[n]*A[n]) #velocity at exit of nozzle (m/s)
+    
+    u = results_u[1] #velocity at exit of nozzle (m/s)
     gamma = 1.1
-
+    print(u)
     P1 = 13789.5 #Noz_states.P[n] PLACEHOLDER, need design exit pressure or design alt
     T1 = Noz_states.T[n]
     M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])

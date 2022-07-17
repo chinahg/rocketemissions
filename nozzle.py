@@ -29,8 +29,10 @@ class ReactorOde:
         """the ODE function, y' = f(t,y) """
         nsp = 53 #number of species in mechanism
         
-        drdx = 0.01
-        dAdx = 3.1415*2*drdx
+        if t == 0:
+            dAdx = 0.1888181/math.sqrt(t+0.001) + 3.1415
+        else:
+            dAdx = 0.1888181/math.sqrt(t) + 3.1415
 
         mdot = 67.35 + 404.79
         A_in = 0.0599
@@ -44,7 +46,7 @@ class ReactorOde:
         
         #converging
         #create new function to find dAdx and A etc
-        A = A_in+dAdx*t
+        A = 3.1415*(np.sqrt(t)+A_in)**2
         
         MW_mix = self.gas.mean_molecular_weight
         Ru = ct.gas_constant
