@@ -27,8 +27,8 @@ def shock_calc(M1, P1, T1, P_a):
     nuM1 = 0
     nuM2 = nuM1 + math.sqrt((gamma+1)/(gamma-1)) *math.atan(math.sqrt(((gamma-1)/(gamma+1))*(M1**2 -1))) - math.atan(math.sqrt(M1**2 -1)) #7.56 #Prandtl-Meyer function
     M2 = sp.optimize.newton(Prandtl_Meyer_Mach, 1.5, args=(nuM2, gamma)) #Prandtl-Meyer
-    P2P1 = ((1+(gamma-1)*0.5*(M1**2))/(1+(gamma-1)*0.5*(M2**2)))**(gamma/(gamma-1))
-    P2 = P2P1*P1
+    #P2P1 = P2/P1 #((1+(gamma-1)*0.5*(M1**2))/(1+(gamma-1)*0.5*(M2**2)))**(gamma/(gamma-1))
+    P2 = P_a
     T2T02 = (1 + (gamma-1)/2 * M2**2)**-1 #T4/T04 from isentropic relations
     T01T1 = (1 + (gamma-1)/2 * M1**2) #T03/T3 from isentropic relations
     P1P01 = (T01T1**-1)**(gamma/(gamma-1))
@@ -58,8 +58,8 @@ def shock_calc(M1, P1, T1, P_a):
 
 
     M3 = M3n/math.sin(beta2rad-theta2rad) #Mach number after 1st shock
-    T3T2 = ((2*gamma*M2n**2 -(gamma-1))*((gamma-1)*M2n**2 +2))/((gamma+1)**2*M2n**2) #1.29 #T2/T1 from normal shock
-    T3 = T2*T3T2     
+    T3T2 = P3P2*((2*gamma*M2n**2)/(gamma+1))# -(gamma-1))*((gamma-1)*M2n**2 +2))/((gamma+1)**2*M2n**2) #1.29 #T2/T1 from normal shock
+    T3 = T2*T3T2  
 
     print("After shock")
     print("M3 = ", M3, "\n")

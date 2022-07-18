@@ -97,6 +97,7 @@ while g<len(altitudes):
     h = altitudes[g] #altitude [m]
     #######################################################################
     #P_atm = 101325*(1 - 2.25577*(10**-5) * h)**5.25588
+     
     if h >= 25000:
         T_atm = (-131.21 + 0.00299*h) + 273.14 #[K]
         P_atm = (2.488 * ((T_atm)/ 216.6)**-11.388)*1000 #[Pa]
@@ -111,6 +112,17 @@ while g<len(altitudes):
 
     else:
         print("ERROR: OUT OF ALTITUDE RANGE")
+
+    #calculate exit velocity
+    #Nozzle Geometry
+    Area_ratio = 19.8
+    A_throat = 0.0599 #[m]
+    A_exit = A_throat*Area_ratio #[m]
+
+    F = 2188080 #[N] thrust at 104.5% RPL
+    P_e = 13798.5 #[Pa] exit pressure of nozzle
+    u_e = (F-((P_e-ambient_P)*A_exit))/(mdot_f+mdot_ox)
+    print(u_e)
 
     #Calculate composition of O2, and N2
     X_N2 = 0.78084
@@ -177,11 +189,8 @@ while g<len(altitudes):
     comp_Noz1 = state.X[n]
     mdot_Noz = mdot_f+mdot_ox
 
-    #Nozzle Geometry
-    L_Noz = 0.01 #[m]
-    A_throat = 0.0599 #[m]
-    A_exit = A_throat*35 #[m]
-
+    L_Noz = (math.sqrt(1/3.1415 *math.sqrt(A_throat*Area_ratio)) - (1/3.1415 *math.sqrt(A_throat)))**2 #[m]
+    print(L_Noz)
     #Call nozzle function
     Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
     n = len(Noz_states.T)-1
@@ -190,7 +199,7 @@ while g<len(altitudes):
     results_T[1] = Noz_states.T[n]
     results_P[1] = Noz_states.P[n]
     results_X[1,:] = Noz_states.X[n]
-    results_u[1] = (mdot_f+mdot_ox)/(Noz_states.density[n]*A_exit)
+    results_u[1] = u_e #[m/s] from F = m_dot*u_e (rocket equation)
 
     #SAVE NEW STATES TO YAML
     #Load YAML file to append new data
@@ -212,11 +221,12 @@ while g<len(altitudes):
 
     #Area function
     A_throat = 0.0599
+    r_in = math.sqrt(A_throat)/3.1415
     dAdx = np.zeros(len(Noz_states.x)-1)
     A = np.zeros(len(Noz_states.x)-1)
     t = 0
     for t in range(n):
-        A[t] = 3.1415*(np.sqrt(Noz_states.x[t])+A_throat)**2
+        A[t] = 3.1415*(np.sqrt(t)+r_in)**2
 
     #############################################################################
     ### SHOCKS/EXPANSION ###
@@ -228,7 +238,7 @@ while g<len(altitudes):
     u = results_u[1] #velocity at exit of nozzle (m/s)
     gamma = 1.1
     print(u)
-    P1 = 13789.5 #Noz_states.P[n] PLACEHOLDER, need design exit pressure or design alt
+    P1 = P_e #Noz_states.P[n] PLACEHOLDER, need design exit pressure or design alt
     T1 = Noz_states.T[n]
     M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])
     P2 = P_atm #Pa

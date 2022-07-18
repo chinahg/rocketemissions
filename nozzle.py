@@ -30,12 +30,13 @@ class ReactorOde:
         nsp = 53 #number of species in mechanism
         
         if t == 0:
-            dAdx = 0.1888181/math.sqrt(t+0.001) + 3.1415
+            dAdx = (3.1415*math.sqrt(t+0.001) + 0.244745)/math.sqrt(t+0.001)
         else:
-            dAdx = 0.1888181/math.sqrt(t) + 3.1415
+            dAdx = (3.1415*math.sqrt(t) + 0.244745)/math.sqrt(t)
 
         mdot = 67.35 + 404.79
         A_in = 0.0599
+        r_in = math.sqrt(A_in)/3.1415
         
         # State vector is [T, Y_1, Y_2, ... Y_K]
         self.gas.TDY = y[1], y[0], y[2:nsp+2]
@@ -46,7 +47,7 @@ class ReactorOde:
         
         #converging
         #create new function to find dAdx and A etc
-        A = 3.1415*(np.sqrt(t)+A_in)**2
+        A = 3.1415*(np.sqrt(t)+r_in)**2
         
         MW_mix = self.gas.mean_molecular_weight
         Ru = ct.gas_constant
@@ -97,7 +98,7 @@ def nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f):
     P_throat = P_t*(2*gamma-1)**(-gamma/(gamma-1))
     T_throat = T_t*(1/(2*gamma-1))
 
-    #print("\nMACH NUMBER AT NOZZLE INLET: ", M_CC)
+    print("\nMACH NUMBER AT NOZZLE INLET: ", M_CC)
     #print("\nTHROAT TEMPERATURE: ", T_throat)
     #print("\nTHROAT PRESSURE: ", P_throat)
 
