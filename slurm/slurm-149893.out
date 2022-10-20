@@ -1,0 +1,5 @@
+Setting s = 5000 and n = 10000
+psi_init = 0.001, phi_init = 0.01
+psi_mult = 1.01, phi_init = 1.01
+Start time : 18:14:14
+Number of CPUs per task: 8

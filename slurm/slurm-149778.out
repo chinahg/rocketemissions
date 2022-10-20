@@ -1,0 +1,2 @@
+/var/spool/slurm/d/job149778/slurm_script: line 23: syntax error near unexpected token `('
+/var/spool/slurm/d/job149778/slurm_script: line 23: `job_id=$7(sbatch --parsable test.sh)'

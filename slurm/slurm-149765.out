@@ -1,0 +1,4 @@
+Setting s = 2000 and n = 1000, %j, 1000%j
+Start time : 10:28:45
+2
+slurmstepd: error: *** JOB 149765 ON c038 CANCELLED AT 2022-10-20T12:30:40 ***

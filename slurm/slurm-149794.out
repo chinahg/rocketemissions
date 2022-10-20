@@ -1,0 +1,60 @@
+Setting s = 2000 and n = 1000
+psi_init = 0.001, phi_init = 0.01
+psi_mult = 1.01, phi_init = 1.05
+Start time : 11:24:05
+Number of CPUs per task: 8
+┌ Warning: Assignment to `x_save` in soft scope is ambiguous because a global variable by the same name exists: `x_save` will be treated as a new local. Disambiguate by using `local x_save` to suppress this warning or `global x_save` to assign to the existing global variable.
+└ @ ~/GCresearch/rocketemissions/plumeSSME.jl:109
+┌ Warning: Assignment to `y_save` in soft scope is ambiguous because a global variable by the same name exists: `y_save` will be treated as a new local. Disambiguate by using `local y_save` to suppress this warning or `global y_save` to assign to the existing global variable.
+└ @ ~/GCresearch/rocketemissions/plumeSSME.jl:110
+ERROR: LoadError: PyError ($(Expr(:escape, :(ccall(#= /home/chinahg/.julia/packages/PyCall/ygXW2/src/pyfncall.jl:43 =# @pysym(:PyObject_Call), PyPtr, (PyPtr, PyPtr, PyPtr), o, pyargsptr, kw))))) <class 'FileNotFoundError'>
+FileNotFoundError(2, 'No such file or directory')
+  File "/home/chinahg/.local/lib/python3.8/site-packages/matplotlib/pyplot.py", line 979, in savefig
+    res = fig.savefig(*args, **kwargs)
+  File "/home/chinahg/.local/lib/python3.8/site-packages/matplotlib/figure.py", line 3046, in savefig
+    self.canvas.print_figure(fname, **kwargs)
+  File "/home/chinahg/.local/lib/python3.8/site-packages/matplotlib/backend_bases.py", line 2319, in print_figure
+    result = print_method(
+  File "/home/chinahg/.local/lib/python3.8/site-packages/matplotlib/backend_bases.py", line 1648, in wrapper
+    return func(*args, **kwargs)
+  File "/home/chinahg/.local/lib/python3.8/site-packages/matplotlib/_api/deprecation.py", line 415, in wrapper
+    return func(*inner_args, **inner_kwargs)
+  File "/home/chinahg/.local/lib/python3.8/site-packages/matplotlib/backends/backend_agg.py", line 541, in print_png
+    mpl.image.imsave(
+  File "/home/chinahg/.local/lib/python3.8/site-packages/matplotlib/image.py", line 1675, in imsave
+    image.save(fname, **pil_kwargs)
+  File "/home/chinahg/.local/lib/python3.8/site-packages/PIL/Image.py", line 2297, in save
+    fp = builtins.open(filename, "w+b")
+
+Stacktrace:
+ [1] pyerr_check at /home/chinahg/.julia/packages/PyCall/ygXW2/src/exception.jl:62 [inlined]
+ [2] pyerr_check at /home/chinahg/.julia/packages/PyCall/ygXW2/src/exception.jl:66 [inlined]
+ [3] _handle_error(::String) at /home/chinahg/.julia/packages/PyCall/ygXW2/src/exception.jl:83
+ [4] macro expansion at /home/chinahg/.julia/packages/PyCall/ygXW2/src/exception.jl:97 [inlined]
+ [5] #107 at /home/chinahg/.julia/packages/PyCall/ygXW2/src/pyfncall.jl:43 [inlined]
+ [6] disable_sigint at ./c.jl:446 [inlined]
+ [7] __pycall! at /home/chinahg/.julia/packages/PyCall/ygXW2/src/pyfncall.jl:42 [inlined]
+ [8] _pycall!(::PyObject, ::PyObject, ::Tuple{String}, ::Int64, ::Ptr{Nothing}) at /home/chinahg/.julia/packages/PyCall/ygXW2/src/pyfncall.jl:29
+ [9] _pycall! at /home/chinahg/.julia/packages/PyCall/ygXW2/src/pyfncall.jl:11 [inlined]
+ [10] #pycall#113 at /home/chinahg/.julia/packages/PyCall/ygXW2/src/pyfncall.jl:83 [inlined]
+ [11] pycall at /home/chinahg/.julia/packages/PyCall/ygXW2/src/pyfncall.jl:83 [inlined]
+ [12] savefig(::String; kws::Base.Iterators.Pairs{Union{},Union{},Tuple{},NamedTuple{(),Tuple{}}}) at /home/chinahg/.julia/packages/PyPlot/NsAWt/src/PyPlot.jl:194
+ [13] savefig(::String) at /home/chinahg/.julia/packages/PyPlot/NsAWt/src/PyPlot.jl:191
+ [14] top-level scope at /home/chinahg/GCresearch/rocketemissions/plumeSSME.jl:341
+ [15] include(::Function, ::Module, ::String) at ./Base.jl:380
+ [16] include(::Module, ::String) at ./Base.jl:368
+ [17] exec_options(::Base.JLOptions) at ./client.jl:296
+ [18] _start() at ./client.jl:506
+in expression starting at /home/chinahg/GCresearch/rocketemissions/plumeSSME.jl:207
+started
+Reading arguments from bash: s = 2000 n = 1000
+Reading arguments from bash: ψ_init = 0.001 ϕ_init = 0.01
+Reading arguments from bash: ψ_mult = 1.01 ϕ_mult = 1.05
+started populating phi and psi
+started altitude for loop
+at radius allocation
+starting splitting
+1 of 1 altitudes done!
+
+done computing! 💕
+End time : 13:50:23
