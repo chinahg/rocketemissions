@@ -1,0 +1,16 @@
+Setting s = 2000 and n = 1000
+psi_init = 0.001, phi_init = 0.01
+psi_mult = 1.01, phi_init = 1.05
+Start time : 11:22:11
+Number of CPUs per task: 8
+ERROR: LoadError: UndefVarError: psi_init not defined
+Stacktrace:
+ [1] top-level scope at /home/chinahg/GCresearch/rocketemissions/plumeSSME.jl:46
+ [2] include(::Function, ::Module, ::String) at ./Base.jl:380
+ [3] include(::Module, ::String) at ./Base.jl:368
+ [4] exec_options(::Base.JLOptions) at ./client.jl:296
+ [5] _start() at ./client.jl:506
+in expression starting at /home/chinahg/GCresearch/rocketemissions/plumeSSME.jl:46
+started
+Reading arguments from bash: s = 2000 n = 1000
+End time : 11:22:53

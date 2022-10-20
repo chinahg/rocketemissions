@@ -238,7 +238,7 @@ while g<len(altitudes):
     u = results_u[1] #velocity at exit of nozzle (m/s)
     gamma = 1.1
     print(u)
-    P1 = P_e #Noz_states.P[n] PLACEHOLDER, need design exit pressure or design alt
+    P1 = P_e #TODO Noz_states.P[n] PLACEHOLDER, need design exit pressure or design alt
     T1 = Noz_states.T[n]
     M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])
     P2 = P_atm #Pa

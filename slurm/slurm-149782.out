@@ -1,0 +1,19 @@
+/var/spool/slurm/d/job149782/slurm_script: line 23: --parsable: command not found
+Setting s = 2000 and n = 1000
+psi_init = 0.001, phi_init = 0.01
+psi_mult = 1.01, phi_init = 1.05
+Start time : 11:07:41
+Number of CPUs per task: 8
+ERROR: LoadError: ArgumentError: invalid base 10 digit '.' in "0.001"
+Stacktrace:
+ [1] tryparse_internal(::Type{Int64}, ::String, ::Int64, ::Int64, ::Int64, ::Bool) at ./parse.jl:132
+ [2] parse(::Type{Int64}, ::String; base::Nothing) at ./parse.jl:238
+ [3] parse(::Type{Int64}, ::String) at ./parse.jl:238
+ [4] top-level scope at /home/chinahg/GCresearch/rocketemissions/plumeSSME.jl:39
+ [5] include(::Function, ::Module, ::String) at ./Base.jl:380
+ [6] include(::Module, ::String) at ./Base.jl:368
+ [7] exec_options(::Base.JLOptions) at ./client.jl:296
+ [8] _start() at ./client.jl:506
+in expression starting at /home/chinahg/GCresearch/rocketemissions/plumeSSME.jl:39
+started
+End time : 11:08:28
