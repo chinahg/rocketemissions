@@ -41,6 +41,8 @@ s = parse(Int, ARGS[2]) #s steps in y direction
 ψ_mult= parse(Float64, ARGS[5])
 ϕ_mult= parse(Float64, ARGS[6])
 job_id = ARGS[7]
+set_T = ARGS[8] #imported or ambient
+set_u = ARGS[9] #imported or ambient
 
 println("Reading arguments from bash: s = ", s, " n = ", n)
 println("Reading arguments from bash: ψ_init = ", ψ_init, " ϕ_init = ", ϕ_init)
@@ -49,20 +51,21 @@ println("Reading arguments from bash: ψ_mult = ", ψ_mult, " ϕ_mult = ", ϕ_mu
 T_save = zeros(length(h), s, n)
 u_save = zeros(length(h), s, n)
 χ_save = zeros(length(h), s, n, n_species)
-x_save = zeros(n)
-y_save = zeros(s)
+y = zeros(s,n)
+x = zeros(n)
+
 gas_g = StructArray{gas_type}(undef,s,n,length(h))
 gas_g .= [gas_type(0)]
 
 println("started populating phi and psi")
 Δϕ = ϕ_init * ones(n) #step size in phi
 for i = 2:n
-    Δϕ[i] = ϕ_mult * Δϕ[i-1] #enlarge with each step by 1.1
+    Δϕ[i] = ϕ_mult * Δϕ[i-1] #enlarge with each step by mult
 end
 
 Δψ = ψ_init * ones(s) #s vertical grid points
 for i = 2:s
-    Δψ[i] = ψ_mult * Δψ[i-1] #enlarge with each step by 1.1
+    Δψ[i] = ψ_mult * Δψ[i-1] #enlarge with each step by mult
 end
 
 println("started altitude for loop")
@@ -71,12 +74,6 @@ for m = 1:lastindex(h)
 
     ### IMPORT SHOCK EXIT CONDITIONS ###
 
-    u0 = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/u")#initial plume velocity
-    u0 = convert(AbstractFloat, u0[2])
-
-    T0 = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/T") #initial plume temperature
-    T0 = convert(AbstractFloat, T0[2])
-
     p_all = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/P")
     p = convert(AbstractFloat, p_all[2])
 
@@ -84,8 +81,20 @@ for m = 1:lastindex(h)
 
     #curve fit #a = ambient vel [m/s] (speed of rocket) 
     T_a = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/T_a")
-    #T0 = T_a #for testing see vincent messages
-    #u0 = u_a #for testing see vincent messages
+    
+    if set_T == "ambient"
+        T0 = T_a #for testing
+    else
+        T0 = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/T") #initial plume temperature
+        T0 = convert(AbstractFloat, T0[2])
+    end
+
+    if set_u == "ambient"
+        u0 = u_a #for testing
+    else
+        u0 = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/u")#initial plume velocity
+        u0 = convert(AbstractFloat, u0[2])
+    end
  
     ### CALCULATE VELOCITY AND TEMPERATURE FIELDS (NO CHEMISTRY) ###
 
@@ -98,7 +107,7 @@ for m = 1:lastindex(h)
     y_init = compute_y(u_init, T_init, Δψ, R, p)
 
     #Geometry of plume
-    radius = 1.147
+    radius = 0.1#1.147
     u_init[y_init.>radius] .= convert(AbstractFloat, u_a)
     T_init[y_init.>radius] .= convert(AbstractFloat, T_a)
    
@@ -106,8 +115,8 @@ for m = 1:lastindex(h)
 
     #Solve for T and u at all steps: NO CHEMISTRY
     x, y, u, T, ϵ = solve_exhaust_flow(u_init, T_init, ambient, n, Δϕ, Δψ)
-    x_save = x
-    y_save = y
+    println("solve exhaust: ", size(y))
+
     T_save[m, :, :] = T
     u_save[m, :, :] = u
 
@@ -177,7 +186,7 @@ for m = 1:lastindex(h)
     #dummy_reactor = ct.IdealGasReactor(gas)
     
     println("starting splitting")
-    Threads.@threads for i = 1:n-1 #x
+    for i = 1:n-1 #x
         
         for j = 1:n_species #species
             #calculate f0 at half step 0.5*Δϕ (x)
@@ -216,19 +225,18 @@ if plot_flag
         T = T_save[m, :, :] #temperature
         u = u_save[m, :, :] #velocity
         χ = χ_save[m, :, :, :] #concentrations
-        x = x_save
-        y = y_save
+        println("before regrid: ", size(y))
         h_string = string(h[m])
         P_atm = 101325 #placeholder, need altitude dependent
         R = 287 #[J/kgK] placeholder
 
         #REGRID SOLUTION
-        #xx, yy, u_g, T_g, χ_gO2 =  regrid_solution(x, y, u, T, χ[:,:,4], 0.01)
-        #xx, yy, u_g, T_g, χ_gN2 =  regrid_solution(x, y, u, T, χ[:,:,48], 0.01)
+        xx, yy, u_g, T_g, χ_gO2 =  regrid_solution(x, y, u, T, χ[:,:,4], 0.01)
+        xx, yy, u_g, T_g, χ_gN2 =  regrid_solution(x, y, u, T, χ[:,:,48], 0.01)
         #xx, yy, u_g, T_g, χ_gNO2 = regrid_solution(x, y, u, T, χ[:, :, 37], 0.01)
         #xx, yy, u_g, T_g, χ_gN2O = regrid_solution(x, y, u, T, χ[:, :, 38], 0.01)
         #xx, yy, u_g, T_g, χ_gNO = regrid_solution(x, y, u, T, χ[:, :, 36], 0.01)
-        #xx, yy, u_g, T_g, χ_gAr = regrid_solution(x, y, u, T, χ[:, :, 49], 0.01)
+        xx, yy, u_g, T_g, χ_gAr = regrid_solution(x, y, u, T, χ[:, :, 49], 0.01)
 
         #PLOT 2D MAPS AND SAVE
         x_max = 20 #[m]
@@ -304,22 +312,22 @@ if plot_flag
         mdot_N2[s,:] = mdot_N2[s-1,:]
         mdot_O2[s,:] = mdot_O2[s-1,:]
 
-        #fig,axc = plt.subplots()
-        #axc.plot(ϕ, u[s,:], label="5000/5000")
-        #axc.plot(ϕ, u[s-1,:], label="4999/5000")
-        #axc.plot(ϕ, u[s-50,:], label="4950/5000")
-        #axc.plot(ϕ, u[s-100,:], label="4900/5000")
-        #axc.plot(ϕ, u[s-150,:], label="4850/5000")
-        #axc.plot(ϕ, u[s-200,:], label="4800/5000")
-        #axc.plot(ϕ, u[s-250,:], label="4750/5000")
-        #axc.plot(ϕ, u[s-1000,:], label="4000/5000")
+        # fig,axc = plt.subplots()
+        # axc.plot(ϕ, u[s,:], label="5000/5000")
+        # axc.plot(ϕ, u[s-1,:], label="4999/5000")
+        # axc.plot(ϕ, u[s-50,:], label="4950/5000")
+        # axc.plot(ϕ, u[s-100,:], label="4900/5000")
+        # axc.plot(ϕ, u[s-150,:], label="4850/5000")
+        # axc.plot(ϕ, u[s-200,:], label="4800/5000")
+        # axc.plot(ϕ, u[s-250,:], label="4750/5000")
+        # axc.plot(ϕ, u[s-1000,:], label="4000/5000")
     
-        #axc.set_xlabel("ϕ")
-        #axc.set_ylabel("m/s at ψ = 0.1")
-        #axc.set_xscale("log")
-        #legend = axc.legend(loc = "upper right")
-        #fig.suptitle("Centerline Velocity")
-        #savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_u_cent.png")
+        # axc.set_xlabel("ϕ")
+        # axc.set_ylabel("m/s at ψ = 0.1")
+        # axc.set_xscale("log")
+        # legend = axc.legend(loc = "upper right")
+        # fig.suptitle("Centerline Velocity")
+        # savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_u_cent.png")
 
         fig,axR = plt.subplots(2,2)
         axR[1,1].plot(ϕ, mdot_Ar[1,:])
@@ -357,33 +365,33 @@ if plot_flag
         savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_u.png")
 
 
-        #fig,axs = plt.subplots(2,2)
-        #axs[1,1].plot(ϕ, mdot_tot)
-        #axs[1,1].set_xlabel("ϕ")
-        #axs[1,1].set_ylabel("Total mass flow rate [kg/s]")
-        #axs[1,1].set_title("Total mdot")
-        #axs[1,1].set_xscale("log")
-    #
-        #axs[1,2].plot(ϕ, mdot_N2_sumTrunc)
-        #axs[1,2].set_xlabel("ϕ")
-        #axs[1,2].set_ylabel("N2 mass flow rate [kg/s]")
-        #axs[1,2].set_title("N2")
-        #axs[1,2].set_xscale("log")
-    #
-        #axs[2,1].plot(ϕ, mdot_O2_sumTrunc)
-        #axs[2,1].set_xlabel("ϕ")
-        #axs[2,1].set_ylabel("O2 mass flow rate [kg/s]")
-        #axs[2,1].set_xscale("log")
-    #
-        #axs[2,2].plot(ϕ, mdot_Ar_sumTrunc)
-        #axs[2,2].set_xlabel("ϕ")
-        #axs[2,2].set_ylabel("Ar mass flow rate [kg/s]")
-        #axs[2,2].set_title("Ar")
-        #axs[2,2].set_xscale("log")
-        #
-        #fig.suptitle("Truncated Mass Flow Rates, s = 250/300")
-        #fig.tight_layout()
-        #savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_mdot_trunc.png")
+        # fig,axs = plt.subplots(2,2)
+        # axs[1,1].plot(ϕ, mdot_tot)
+        # axs[1,1].set_xlabel("ϕ")
+        # axs[1,1].set_ylabel("Total mass flow rate [kg/s]")
+        # axs[1,1].set_title("Total mdot")
+        # axs[1,1].set_xscale("log")
+    
+        # axs[1,2].plot(ϕ, mdot_N2_sumTrunc)
+        # axs[1,2].set_xlabel("ϕ")
+        # axs[1,2].set_ylabel("N2 mass flow rate [kg/s]")
+        # axs[1,2].set_title("N2")
+        # axs[1,2].set_xscale("log")
+    
+        # axs[2,1].plot(ϕ, mdot_O2_sumTrunc)
+        # axs[2,1].set_xlabel("ϕ")
+        # axs[2,1].set_ylabel("O2 mass flow rate [kg/s]")
+        # axs[2,1].set_xscale("log")
+    
+        # axs[2,2].plot(ϕ, mdot_Ar_sumTrunc)
+        # axs[2,2].set_xlabel("ϕ")
+        # axs[2,2].set_ylabel("Ar mass flow rate [kg/s]")
+        # axs[2,2].set_title("Ar")
+        # axs[2,2].set_xscale("log")
+        
+        # fig.suptitle("Truncated Mass Flow Rates, s = 250/300")
+        # fig.tight_layout()
+        # savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_mdot_trunc.png")
 
         fig,axX = plt.subplots(2,2)
         axX[1,1].plot(ϕ, mdot_tot)

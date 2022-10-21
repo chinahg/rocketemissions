@@ -138,9 +138,12 @@ grid spacing in ϕ-ψ space.
 """
 function compute_y(u::AbstractVector, T::AbstractVector, Δψ::AbstractVector,
     R::AbstractFloat, p::AbstractFloat)
-    
+    try 
+        (2 * cumsum((R / p) * T ./ u) .* Δψ) .^ 0.5
+    catch
+        println(T,u)
+    end
     return (2 * cumsum((R / p) * T ./ u) .* Δψ) .^ 0.5
-
 end
 
 """
@@ -243,9 +246,10 @@ Maps back solution from a grid in ϕ-ψ space to a grid in x-y space.
 - `T` Temperature values of solution
 - `y_spacing` Desired spacing in `y` direction for output grid
 """
-function regrid_solution(x::AbstractVector, y::AbstractMatrix, u::AbstractMatrix,
-    T::AbstractMatrix, χ::AbstractMatrix, y_spacing::AbstractFloat)
+function regrid_solution(x::Array, y::Array, u::Array,
+    T::Array, χ::Array, y_spacing::Float64)
 
+    println("regrid: ",size(y))
     yy = 0:y_spacing:maximum(y)
 
     u_gridded = zeros((size(yy)[1], size(x)[1]))
