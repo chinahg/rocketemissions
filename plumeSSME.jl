@@ -21,6 +21,7 @@ ENV["PYTHON"] = "/opt/conda/envs/lae2020/bin/python"
 # Pkg.build("PyCall")
 
 include("plumefunctions.jl")
+include("plume_plotting.jl")
 
 struct gas_type
     gas
@@ -51,11 +52,12 @@ println("Reading arguments from bash: ψ_mult = ", ψ_mult, " ϕ_mult = ", ϕ_mu
 T_save = zeros(length(h), s, n)
 u_save = zeros(length(h), s, n)
 χ_save = zeros(length(h), s, n, n_species)
-y = zeros(s,n)
-x = zeros(n)
+y_save = zeros(length(h),s,n)
+x_save = zeros(length(h),n)
 
 gas_g = StructArray{gas_type}(undef,s,n,length(h))
 gas_g .= [gas_type(0)]
+h_string = string(h[1])
 
 println("started populating phi and psi")
 Δϕ = ϕ_init * ones(n) #step size in phi
@@ -107,7 +109,7 @@ for m = 1:lastindex(h)
     y_init = compute_y(u_init, T_init, Δψ, R, p)
 
     #Geometry of plume
-    radius = 0.1#1.147
+    radius = 1.147
     u_init[y_init.>radius] .= convert(AbstractFloat, u_a)
     T_init[y_init.>radius] .= convert(AbstractFloat, T_a)
    
@@ -115,10 +117,11 @@ for m = 1:lastindex(h)
 
     #Solve for T and u at all steps: NO CHEMISTRY
     x, y, u, T, ϵ = solve_exhaust_flow(u_init, T_init, ambient, n, Δϕ, Δψ)
-    println("solve exhaust: ", size(y))
 
     T_save[m, :, :] = T
     u_save[m, :, :] = u
+    x_save[m, :] = x
+    y_save[m, :, :] = y
 
     ### CHEMISTRY STARTS HERE
 
@@ -180,10 +183,10 @@ for m = 1:lastindex(h)
     χ_1 = zeros(size(χ_init))
     
     # Create gas object to store Reactor output gas object state
-    #gas = ct.Solution("gri30.yaml")
+    gas = ct.Solution("gri30.yaml")
 
-    # Create a dummy reactor to ????
-    #dummy_reactor = ct.IdealGasReactor(gas)
+    # Create a dummy reactor to establish a global variable
+    dummy_reactor = ct.IdealGasReactor(gas)
     
     println("starting splitting")
     for i = 1:n-1 #x
@@ -194,13 +197,13 @@ for m = 1:lastindex(h)
             # concentration of species j at x = i and y = all
         end
 
-        #save_tuple = solve_reaction(χ_h0, T[:, i], Δϕ[i], ϵ[i], u[:, i], gas, i, χ_1, s, n_species, @view gas_g[:,i,m])
-        #gas_g.gas[:,i+1,m] .= save_tuple[2]
-        #χ_1 = save_tuple[1]
+        save_tuple = solve_reaction(χ_h0, T[:, i], Δϕ[i], ϵ[i], u[:, i], gas, i, χ_1, s, n_species, @view gas_g[:,i,m])
+        gas_g.gas[:,i+1,m] .= save_tuple[2]
+        χ_1 = save_tuple[1]
 
         for j = 1:n_species-1 #species
             #calculate f0 at full step Δϕ
-            χ[:, i+1, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ_h0[:, j], i, j)
+            χ[:, i+1, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ_1[:, j], i, j)
         end
 
         i = i + 1
@@ -211,282 +214,24 @@ for m = 1:lastindex(h)
 end
 println("done computing! 💕")
 
+fid = h5open("plume_" * h_string * "m_" *job_id* ".h5", "w")
+create_group(fid, job_id)
+
+fid["n"] = n
+fid["s"] = s
+fid["x"] = x_save
+fid["y"] = y_save
+fid["T"] = T_save
+fid["X"] = χ_save
+fid["u"] = u_save
+fid["delPhi"] = Δϕ
+fid["delPsi"] = Δψ
+fid["job_id"] = job_id
+fid["altitude"] = h_string
+close(fid)
+
 plot_flag = true
 
 if plot_flag
-    close("all")
-    # Define altitude range to plot over
-    #h = [16000] #Int.(LinRange(16000, 20000, space)) #make an array and put in loop for all alts
-    h_string_arr = string(h)
-
-    for m = 1:lastindex(h) #For all specified altitudes
-
-        # Initialize arrays to save results
-        T = T_save[m, :, :] #temperature
-        u = u_save[m, :, :] #velocity
-        χ = χ_save[m, :, :, :] #concentrations
-        println("before regrid: ", size(y))
-        h_string = string(h[m])
-        P_atm = 101325 #placeholder, need altitude dependent
-        R = 287 #[J/kgK] placeholder
-
-        #REGRID SOLUTION
-        xx, yy, u_g, T_g, χ_gO2 =  regrid_solution(x, y, u, T, χ[:,:,4], 0.01)
-        xx, yy, u_g, T_g, χ_gN2 =  regrid_solution(x, y, u, T, χ[:,:,48], 0.01)
-        #xx, yy, u_g, T_g, χ_gNO2 = regrid_solution(x, y, u, T, χ[:, :, 37], 0.01)
-        #xx, yy, u_g, T_g, χ_gN2O = regrid_solution(x, y, u, T, χ[:, :, 38], 0.01)
-        #xx, yy, u_g, T_g, χ_gNO = regrid_solution(x, y, u, T, χ[:, :, 36], 0.01)
-        xx, yy, u_g, T_g, χ_gAr = regrid_solution(x, y, u, T, χ[:, :, 49], 0.01)
-
-        #PLOT 2D MAPS AND SAVE
-        x_max = 20 #[m]
-
-        #CALCULATE NO EI FOR ALTITUDE
-        # Sum of all NOx species as a function of x
-        sumNO = zeros(n)
-        sumNO2 = zeros(n)
-        sumN2O = zeros(n)
-        Xarea = zeros(s,n)
-        EI_Ar = zeros(s,n)
-        i = 1
-        j = 1
-
-        #x_lim = length(xx)
-        #y_lim = length(yy)
-
-        MW_Ar = 39.95 #[kg/mol]
-        mdot_fuel = 67.35 #[kg/s]
-        rho_tot = zeros(s,n)
-        MFar = zeros(s,n)
-        MFn2 = zeros(s,n)
-        MFo2 = zeros(s,n)
-
-        mdot_Ar_sum = zeros(n)
-        mdot_N2_sum = zeros(n)
-        mdot_O2_sum = zeros(n)
-        #mdot_Ar_sumTrunc = zeros(n)
-        #mdot_N2_sumTrunc = zeros(n)
-        #mdot_O2_sumTrunc = zeros(n)
-        mdot_Ar = zeros(s,n)
-        mdot_N2 = zeros(s,n)
-        mdot_O2 = zeros(s,n)
-        ppm_ar = zeros(n) 
-        ppm_n2 = zeros(n)
-        ppm_o2 = zeros(n)
-        mdot_tot = zeros(n)
-        ppm_tot = zeros(n)
-
-        ϕ = cumsum(Δϕ)
-        ψ = cumsum(Δψ)
-
-        for i = 1:n, j = 1:s-1
-            rho_tot[j,i] = P_atm/(R*T[j,i]) #[kg/m^3] #need to convert to xx yy coordinates
-            MFar[j,i] = (χ[j,i,49]*(1/28.97)*(39.9))/1000000 #[kg/kg tot]
-            MFn2[j,i] = (χ[j,i,48]*(1/28.97)*(28))/1000000 #[kg/kg tot]
-            MFo2[j,i] = (χ[j,i,4]*(1/28.97)*(32))/1000000 #[kg/kg tot]
-            Xarea[j,i] = pi*(ψ[j+1]^2 - ψ[j]^2)
-
-            mdot_Ar[j,i] = Xarea[j,i]*MFar[j,i]*rho_tot[j,i]*u[j,i]
-            mdot_N2[j,i] = Xarea[j,i]*MFn2[j,i]*rho_tot[j,i]*u[j,i]
-            mdot_O2[j,i] = Xarea[j,i]*MFo2[j,i]*rho_tot[j,i]*u[j,i]
-
-            ppm_ar[i] += χ[j,i,49]
-            ppm_n2[i] += χ[j,i,48]
-            ppm_o2[i] += χ[j,i,4]
-
-            #TODO: populate the last entry of sum arrays (stops at s-1)
-            mdot_O2_sum[i] += mdot_O2[j,i]
-            mdot_N2_sum[i] += mdot_N2[j,i]
-            mdot_Ar_sum[i] += mdot_Ar[j,i]
-            
-            #if j < 150
-            #    mdot_O2_sumTrunc[i] += mdot_O2[i,j]
-            #    mdot_N2_sumTrunc[i] += mdot_N2[i,j]
-            #    mdot_Ar_sumTrunc[i] += mdot_Ar[i,j]
-            #end
-            mdot_tot[i] += mdot_Ar[j,i] + mdot_N2[j,i] + mdot_O2[j,i]
-        end
-
-        ppm_tot = ppm_ar + ppm_n2 + ppm_o2
-        mdot_Ar[s,:] = mdot_Ar[s-1,:]
-        mdot_N2[s,:] = mdot_N2[s-1,:]
-        mdot_O2[s,:] = mdot_O2[s-1,:]
-
-        # fig,axc = plt.subplots()
-        # axc.plot(ϕ, u[s,:], label="5000/5000")
-        # axc.plot(ϕ, u[s-1,:], label="4999/5000")
-        # axc.plot(ϕ, u[s-50,:], label="4950/5000")
-        # axc.plot(ϕ, u[s-100,:], label="4900/5000")
-        # axc.plot(ϕ, u[s-150,:], label="4850/5000")
-        # axc.plot(ϕ, u[s-200,:], label="4800/5000")
-        # axc.plot(ϕ, u[s-250,:], label="4750/5000")
-        # axc.plot(ϕ, u[s-1000,:], label="4000/5000")
-    
-        # axc.set_xlabel("ϕ")
-        # axc.set_ylabel("m/s at ψ = 0.1")
-        # axc.set_xscale("log")
-        # legend = axc.legend(loc = "upper right")
-        # fig.suptitle("Centerline Velocity")
-        # savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_u_cent.png")
-
-        fig,axR = plt.subplots(2,2)
-        axR[1,1].plot(ϕ, mdot_Ar[1,:])
-        axR[1,1].set_xlabel("ϕ")
-        axR[1,1].set_ylabel("kg/s Ar at ψ = 0.1")
-        axR[1,1].set_xscale("log")
-
-        axR[2,1].plot(ϕ, χ[1,:,49])
-        axR[2,1].set_xlabel("ϕ")
-        axR[2,1].set_ylabel("ppm Ar at ψ = 0.1")
-        axR[2,1].set_xscale("log")
-
-        axR[2,2].plot(ϕ, T[1,:,1])
-        axR[2,2].set_xlabel("ϕ")
-        axR[2,2].set_ylabel("T at ψ = 0.1")
-        axR[2,2].set_xscale("log")
-        fig.suptitle("Single Ring, 0.1< ψ <= 0.105")
-        fig.tight_layout()
-        savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_ring1.png")
-
-        fig,axT = plt.subplots()
-        im = axT.imshow(T[:,:,m], cmap="summer")
-        axT.set_ylabel("ψ")
-        axT.set_xlabel("ϕ")
-        axT.set_title("Temperature")
-        cbar = fig.colorbar(im,ax=axT)
-        savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_T.png")
-
-        fig,axu = plt.subplots()
-        im = axu.imshow(u[:,:,m], cmap="viridis")
-        axu.set_ylabel("ψ")
-        axu.set_xlabel("ϕ")
-        cbar = fig.colorbar(im,ax=axu)
-        axu.set_title("Velocity")
-        savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_u.png")
-
-
-        # fig,axs = plt.subplots(2,2)
-        # axs[1,1].plot(ϕ, mdot_tot)
-        # axs[1,1].set_xlabel("ϕ")
-        # axs[1,1].set_ylabel("Total mass flow rate [kg/s]")
-        # axs[1,1].set_title("Total mdot")
-        # axs[1,1].set_xscale("log")
-    
-        # axs[1,2].plot(ϕ, mdot_N2_sumTrunc)
-        # axs[1,2].set_xlabel("ϕ")
-        # axs[1,2].set_ylabel("N2 mass flow rate [kg/s]")
-        # axs[1,2].set_title("N2")
-        # axs[1,2].set_xscale("log")
-    
-        # axs[2,1].plot(ϕ, mdot_O2_sumTrunc)
-        # axs[2,1].set_xlabel("ϕ")
-        # axs[2,1].set_ylabel("O2 mass flow rate [kg/s]")
-        # axs[2,1].set_xscale("log")
-    
-        # axs[2,2].plot(ϕ, mdot_Ar_sumTrunc)
-        # axs[2,2].set_xlabel("ϕ")
-        # axs[2,2].set_ylabel("Ar mass flow rate [kg/s]")
-        # axs[2,2].set_title("Ar")
-        # axs[2,2].set_xscale("log")
-        
-        # fig.suptitle("Truncated Mass Flow Rates, s = 250/300")
-        # fig.tight_layout()
-        # savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_mdot_trunc.png")
-
-        fig,axX = plt.subplots(2,2)
-        axX[1,1].plot(ϕ, mdot_tot)
-        axX[1,1].set_xlabel("ϕ")
-        axX[1,1].set_ylabel("Total mass flow rate [kg/s]")
-        axX[1,1].set_title("Total mdot")
-        axX[1,1].set_xscale("log")
-
-        axX[1,2].plot(ϕ, mdot_N2_sum)
-        axX[1,2].set_xlabel("ϕ")
-        axX[1,2].set_ylabel("N2 mass flow rate [kg/s]")
-        axX[1,2].set_title("N2")
-        axX[1,2].set_xscale("log")
-
-        axX[2,1].plot(ϕ, mdot_O2_sum)
-        axX[2,1].set_xlabel("ϕ")
-        axX[2,1].set_ylabel("O2 mass flow rate [kg/s]")
-        axX[2,1].set_xscale("log")
-
-        axX[2,2].plot(ϕ, mdot_Ar_sum)
-        axX[2,2].set_xlabel("ϕ")
-        axX[2,2].set_ylabel("Ar mass flow rate [kg/s]")
-        axX[2,2].set_title("Ar")
-        axX[2,2].set_xscale("log")
-
-        fig.suptitle("Total Mass Flow (all rings)")
-        fig.tight_layout()
-        savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_mdot_tot.png")
-
-
-        fig,axs2 = plt.subplots(2,2)
-        axs2[1,1].plot(ϕ, ppm_tot)
-        axs2[1,1].set_xlabel("ϕ")
-        axs2[1,1].set_ylabel("Total ppm")
-        axs2[1,1].set_title("Total ppm")
-        axs2[1,1].set_xscale("log")
-
-        axs2[1,2].plot(ϕ, ppm_n2)
-        axs2[1,2].set_xlabel("ϕ")
-        axs2[1,2].set_ylabel("N2 ppm")
-        axs2[1,2].set_title("N2")
-        axs2[1,2].set_xscale("log")
-
-        axs2[2,1].plot(ϕ, ppm_o2)
-        axs2[2,1].set_xlabel("ϕ")
-        axs2[2,1].set_ylabel("O2 ppm")
-        axs2[2,1].set_xscale("log")
-
-        axs2[2,2].plot(ϕ, ppm_ar)
-        axs2[2,2].set_xlabel("ϕ")
-        axs2[2,2].set_ylabel("Ar ppm")
-        axs2[2,2].set_title("Ar")
-        axs2[2,2].set_xscale("log")
-        fig.suptitle("Species ppm (all rings)")
-        fig.tight_layout()
-        savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_ppm_tot.png")
-
-        fig,axXg = plt.subplots(2,2)
-        custom_xlim = (0,250)
-        plt.setp(axXg, xlim=custom_xlim)
-        axXg[1,1].plot(xx[1:250], mdot_tot_g[1:250])
-        axXg[1,1].set_xlabel("x")
-        axXg[1,1].set_ylabel("Total mass flow rate [kg/s]")
-        axXg[1,1].set_title("Total mdot")
-
-
-        axXg[1,2].plot(xx[1:250], mdot_N2_sum_g[1:250])
-        axXg[1,2].set_xlabel("x")
-        axXg[1,2].set_ylabel("N2 mass flow rate [kg/s]")
-        axXg[1,2].set_title("N2")
-
-
-        axXg[2,1].plot(xx[1:250], mdot_O2_sum_g[1:250])
-        axXg[2,1].set_xlabel("x")
-        axXg[2,1].set_ylabel("O2 mass flow rate [kg/s]")
-
-
-        axXg[2,2].plot(xx[1:250], mdot_Ar_sum_g[1:250])
-        axXg[2,2].set_xlabel("x")
-        axXg[2,2].set_ylabel("Ar mass flow rate [kg/s]")
-        axXg[2,2].set_title("Ar")
-
-        fig.suptitle("Total Mass Flow (all rings)")
-        fig.tight_layout()
-        savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_mdot_tot_g.png")
-
-        println("Δ mdot Ar total is ", mdot_Ar_sum[n]-mdot_Ar_sum[1])
-        println("Δ mdot Ar/Δ mdot total is ", (mdot_Ar_sum[n]-mdot_Ar_sum[1])/(mdot_tot[n]-mdot_tot[1]))
-        println(mdot_Ar_sum[n], mdot_tot[n])
-
-        println("plotted ", h_string[m], " altitude!\n")
-        #println(mdot_Ar_sum[1])
-        #println(mdot_Ar[:,1])
-        #println(yy[473])
-    end
-
-    println("done plotting!")
+    plotting(job_id)
 end
