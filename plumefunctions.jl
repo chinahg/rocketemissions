@@ -220,7 +220,6 @@ function solve_exhaust_flow(u_init::AbstractVector, T_init::AbstractVector,
         
         y_mem[:, i] = compute_y(@view(u_mem[:, i]), @view(T_mem[:, i]), Δψ, ambient.R, ambient.p)
 
-
         A = construct_tridiagonal_matrix(size(u_init)[1], Δψ, Δϕ[i], @view(y_mem[:, i]), ambient)
         b = construct_rhs(@view(u_mem[:, i]), @view(T_mem[:, i]), @view(y_mem[:, i]), Δψ, Δϕ[i], ambient)
         sol = A \ b
@@ -229,10 +228,11 @@ function solve_exhaust_flow(u_init::AbstractVector, T_init::AbstractVector,
         
         ϵ[i] = get_ϵ(0.02, @view(u_mem[:, i]), @view(y_mem[:, i]))
     end
+
     y_mem[:, n] = y_mem[:, n-1]
 
     x = compute_x(ϵ, Δϕ)
-    
+
     return x, y_mem, u_mem, T_mem, ϵ
 end
 
@@ -247,9 +247,10 @@ Maps back solution from a grid in ϕ-ψ space to a grid in x-y space.
 - `y_spacing` Desired spacing in `y` direction for output grid
 """
 function regrid_solution(x::Array, y::Array, u::Array,
-    T::Array, χ::Array, y_spacing::Float64)
+    T::Array, χ::Array)
 
-    println("regrid: ",size(y))
+    y_spacing = maximum(y)/199
+
     yy = 0:y_spacing:maximum(y)
 
     u_gridded = zeros((size(yy)[1], size(x)[1]))

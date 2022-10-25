@@ -14,10 +14,10 @@
 #SBATCH --mem=50000MB
 #####################################
 
-n=$15000
-s=$25000
-psi_init=$30.001
-phi_init=$40.001
+n=$11000
+s=$22000
+psi_init=$30.0001
+phi_init=$40.0001
 psi_mult=$51.01
 phi_mult=$61.01
 job_id=$SLURM_JOBID
