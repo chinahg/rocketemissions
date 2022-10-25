@@ -182,11 +182,11 @@ for m = 1:lastindex(h)
     χ_h0 = zeros(size(χ_init))
     χ_1 = zeros(size(χ_init))
     
-    # Create gas object to store Reactor output gas object state
-    gas = ct.Solution("gri30.yaml")
+    # # Create gas object to store Reactor output gas object state
+    # gas = ct.Solution("gri30.yaml")
 
-    # Create a dummy reactor to establish a global variable
-    dummy_reactor = ct.IdealGasReactor(gas)
+    # # Create a dummy reactor to establish a global variable
+    # dummy_reactor = ct.IdealGasReactor(gas)
     
     println("starting splitting")
     for i = 1:n-1 #x
@@ -197,13 +197,13 @@ for m = 1:lastindex(h)
             # concentration of species j at x = i and y = all
         end
 
-        save_tuple = solve_reaction(χ_h0, T[:, i], Δϕ[i], ϵ[i], u[:, i], gas, i, χ_1, s, n_species, @view gas_g[:,i,m])
-        gas_g.gas[:,i+1,m] .= save_tuple[2]
-        χ_1 = save_tuple[1]
+        #save_tuple = solve_reaction(χ_h0, T[:, i], Δϕ[i], ϵ[i], u[:, i], gas, i, χ_1, s, n_species, @view gas_g[:,i,m])
+        #gas_g.gas[:,i+1,m] .= save_tuple[2]
+        #χ_1 = save_tuple[1]
 
         for j = 1:n_species-1 #species
             #calculate f0 at full step Δϕ
-            χ[:, i+1, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ_1[:, j], i, j)
+            χ[:, i+1, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ_h0[:, j], i, j)
         end
 
         i = i + 1
