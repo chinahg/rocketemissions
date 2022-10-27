@@ -28,6 +28,7 @@ from nozzle import *
 
 #For defining h5py groups
 Gx = ["G1"]
+
 #delete old files
 dir = 'rockettests'
 for f in os.listdir(dir):
@@ -54,7 +55,7 @@ while w < len(altitudes):
         os.mkdir(newpath, 0o755)
     w = w + 1
 
-n_species = 53
+n_species = 10
 
 #Define variables to save for each altitude
 ambient_T = 0
@@ -155,19 +156,19 @@ while g<len(altitudes):
     #Load YAML file to append new data
     stream = open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'r')
     dictionary = yaml.unsafe_load(stream)
-    dictionary.append({'Combustion Chamber Mechanism':['gri30']})
+    dictionary.append({'Combustion Chamber Mechanism':['h2o2']})
     dictionary.append({'Combustion Chamber Exit Temperature [K]':[float(state.T[n])]})
     dictionary.append({'Combustion Chamber Exit Pressure [Pa]':[float(state.P[n])]})
 
-    stream2 = open('gri30.yaml', 'r')
-    gri30 = yaml.unsafe_load(stream2)
-    gri30_species = gri30['phases']
-    gri30_species = gri30_species[0]['species']
+    stream2 = open('h2o2.yaml', 'r')
+    h2o2 = yaml.unsafe_load(stream2)
+    h2o2_species = h2o2['phases']
+    h2o2_species = h2o2_species[0]['species']
 
     i=0
     while i < n_species:
         if state.X[n][i] != 0:
-            dictionary.append({str(gri30_species[i]):[float(state.X[n][i])]})
+            dictionary.append({str(h2o2_species[i]):[float(state.X[n][i])]})
         i = i+1
 
     #Save new dictionary to YAML file
@@ -205,14 +206,14 @@ while g<len(altitudes):
     #Load YAML file to append new data
     stream = open("rockettests/"+str(h)+"m/"+str(h)+"_altitude.yaml", 'r')
     dictionary = yaml.unsafe_load(stream)
-    dictionary.append({'Nozzle Mechanism':['gri30']})
+    dictionary.append({'Nozzle Mechanism':['h2o2']})
     dictionary.append({'Nozzle Exit Temperature [K]':[float(Noz_states.T[n])]})
     dictionary.append({'Nozzle Exit Pressure [Pa]':[float(Noz_states.P[n])]})
 
     i=0
     while i < n_species:
         if Noz_states.X[n][i] != 0:
-            dictionary.append({str(gri30_species[i]):[float(Noz_states.X[n][i])]})
+            dictionary.append({str(h2o2_species[i]):[float(Noz_states.X[n][i])]})
         i = i+1
 
     #Save new dictionary to YAML file
@@ -266,7 +267,7 @@ while g<len(altitudes):
     i=0
     while i < n_species:
         if Noz_states.X[n][i] != 0:
-            dictionary.append({str(gri30_species[i]):[float(Noz_states.X[n][i])]})
+            dictionary.append({str(h2o2_species[i]):[float(Noz_states.X[n][i])]})
         i = i+1
 
     #Save new dictionary to YAML file
