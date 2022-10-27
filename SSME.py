@@ -101,13 +101,13 @@ while g<len(altitudes):
      
     if h >= 25000:
         T_atm = (-131.21 + 0.00299*h) + 273.14 #[K]
-        P_atm = (2.488 * ((T_atm)/ 216.6)**-11.388)*1000 #[Pa]
+        P_atm = (2.488 * ((T_atm)/ 216.6)**(-11.388))*1000 #[Pa]
         ambient_T = T_atm
         ambient_P = P_atm
         
     elif 11000 < h < 25000:
         T_atm = -56.46 + 273.14 #[K]
-        P_atm = (22.65*10**(1.73-0.000157*h))*1000
+        P_atm = (22.65*math.exp(1.73-0.000157*h))*1000
         ambient_T = T_atm
         ambient_P = P_atm
 
@@ -123,7 +123,6 @@ while g<len(altitudes):
     F = 2188080 #[N] thrust at 104.5% RPL
     P_e = 13798.5 #[Pa] exit pressure of nozzle
     u_e = (F-((P_e-ambient_P)*A_exit))/(mdot_f+mdot_ox)
-    print(u_e)
 
     #Calculate composition of O2, and N2
     X_N2 = 0.78084
@@ -191,7 +190,6 @@ while g<len(altitudes):
     mdot_Noz = mdot_f+mdot_ox
 
     L_Noz = (math.sqrt(1/3.1415 *math.sqrt(A_throat*Area_ratio)) - (1/3.1415 *math.sqrt(A_throat)))**2 #[m]
-    print(L_Noz)
     #Call nozzle function
     Noz_states = nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f)
     n = len(Noz_states.T)-1
@@ -238,7 +236,6 @@ while g<len(altitudes):
     
     u = results_u[1] #velocity at exit of nozzle (m/s)
     gamma = 1.1
-    print(u)
     P1 = P_e #TODO Noz_states.P[n] PLACEHOLDER, need design exit pressure or design alt
     T1 = Noz_states.T[n]
     M1 = u/math.sqrt(gamma*P1/Noz_states.density[n])

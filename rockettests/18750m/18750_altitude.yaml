@@ -5,7 +5,7 @@
   Oxygen Mole Fraction:
   - 0.2095
   Pressure [Pa]:
-  - 1384.5804856484378
+  - 6728.88767860459
   Temperature [K]:
   - 216.67999999999998
 - Combustion Chamber Mechanism:
@@ -55,11 +55,11 @@
 - Shocks Mechanism:
   - NONE
 - Shocks Exit Temperature [K]:
-  - 1536.8047182523408
+  - 1774.3494096717657
 - Shocks Exit Pressure [Pa]:
-  - 1384.5804856484378
+  - 6728.88767860459
 - Shocks Exit Velocity [m/s]:
-  - 4603.204225817742
+  - 4616.629174385942
 - H2:
   - 0.23930995583841458
 - H:
