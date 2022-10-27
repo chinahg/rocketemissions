@@ -129,28 +129,17 @@ for m = 1:lastindex(h)
     #import concentration data from upstream combustion
     χ0_full = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/X")
     χ0 = zeros(n_species)
-        #for d = 1: length(χ0_full[:,2])-1
-        #    χ0[d] = χ0_full[d,2]
-
-    #gas = ct.Solution("gri30.yaml")
-    #gas.TPX = T0, p, "Ar:1"
-    #println(gas.density*u0*1.186)
-    #end
-    #same ambient and plume conditions
-    #χ0[48] = 780790 #ppm N2
-    #χ0[4] = 209445 #ppm O2
-    χ0[49] = 100000 #ppm Ar #CHANGE BACK AFTER DEBUG TO 9339
-    #χ0[16] = 9765 #ppm CO2 426
-
-    #ppm must sum to a million
+    for d = 1: length(χ0_full[:,2])-1
+        χ0[d] = χ0_full[d,2]
+    end
 
     #Redefine species initial conditions for multiple species
     χ_a = zeros(n_species)
 
     χ_a[48] = 780790 #ppm N2
     χ_a[4] = 209445 #ppm O2
-    χ_a[49] = 0 #ppm Ar #CHANGE BACK AFTER DEBUG TO 9339
-    χ_a[16] = 9765 #ppm CO2 426
+    χ_a[49] = 9339 #ppm Ar #CHANGE BACK AFTER DEBUG TO 9339
+    χ_a[16] = 426 #ppm CO2 426
 
     χ_init = zeros(s, n_species)
 
@@ -182,11 +171,11 @@ for m = 1:lastindex(h)
     χ_h0 = zeros(size(χ_init))
     χ_1 = zeros(size(χ_init))
     
-    # # Create gas object to store Reactor output gas object state
-    # gas = ct.Solution("gri30.yaml")
+    # Create gas object to store Reactor output gas object state
+    gas = ct.Solution("gri30.yaml")
 
-    # # Create a dummy reactor to establish a global variable
-    # dummy_reactor = ct.IdealGasReactor(gas)
+    # Create a dummy reactor to establish a global variable
+    dummy_reactor = ct.IdealGasReactor(gas)
     
     println("starting splitting")
     for i = 1:n-1 #x
@@ -197,9 +186,9 @@ for m = 1:lastindex(h)
             # concentration of species j at x = i and y = all
         end
 
-        #save_tuple = solve_reaction(χ_h0, T[:, i], Δϕ[i], ϵ[i], u[:, i], gas, i, χ_1, s, n_species, @view gas_g[:,i,m])
-        #gas_g.gas[:,i+1,m] .= save_tuple[2]
-        #χ_1 = save_tuple[1]
+        save_tuple = solve_reaction(χ_h0, T[:, i], Δϕ[i], ϵ[i], u[:, i], gas, i, χ_1, s, n_species, @view gas_g[:,i,m])
+        gas_g.gas[:,i+1,m] .= save_tuple[2]
+        χ_1 = save_tuple[1]
 
         for j = 1:n_species-1 #species
             #calculate f0 at full step Δϕ

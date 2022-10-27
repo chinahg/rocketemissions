@@ -2,9 +2,9 @@ using Interpolations, PyCall, OrdinaryDiffEq,
 YAML, DelimitedFiles, CSV, HDF5, StructArrays, Random, 
 NBInclude, PyPlot
 
-function plotting(job_id::String)
+include("plumefunctions.jl")
 
-    include("plumefunctions.jl")
+function plotting(job_id::String)
 
     h_string = "16000"
 
@@ -33,12 +33,12 @@ function plotting(job_id::String)
     R = 287 #[J/kgK] placeholder
 
     #REGRID SOLUTION
-    xx, yy, u_g, T_g, χ_gO2 =  regrid_solution(x[m,:], y[m,:,:], u, T, χ[:,:,4])
-    xx, yy, u_g, T_g, χ_gN2 =  regrid_solution(x[m,:], y[m,:,:], u, T, χ[:,:,48])
+    xx, yy, u_g, T_g, χ_gO2 = regrid_solution(x[m,:], y[m,:,:], u, T, χ[:,:,4], s)
+    xx, yy, u_g, T_g, χ_gN2 =  regrid_solution(x[m,:], y[m,:,:], u, T, χ[:,:,48], s)
     #xx, yy, u_g, T_g, χ_gNO2 = regrid_solution(x, y, u, T, χ[:, :, 37])
     #xx, yy, u_g, T_g, χ_gN2O = regrid_solution(x, y, u, T, χ[:, :, 38])
-    #xx, yy, u_g, T_g, χ_gNO = regrid_solution(x, y, u, T, χ[:, :, 36])
-    xx, yy, u_g, T_g, χ_gAr = regrid_solution(x[m,:], y[m,:,:], u, T, χ[:, :, 49])
+    xx, yy, u_g, T_g, χ_gNO = regrid_solution(x[m,:], y[m,:,:], u, T, χ[:, :, 36], s)
+    xx, yy, u_g, T_g, χ_gAr = regrid_solution(x[m,:], y[m,:,:], u, T, χ[:, :, 49], s)
 
     fig,axC = plt.subplots(2,1)
     axC[1,1].plot(yy[:,1], ψ)
@@ -107,32 +107,41 @@ function plotting(job_id::String)
     mdot_Ar_sum_g = zeros(k)
     mdot_N2_sum_g = zeros(k)
     mdot_O2_sum_g = zeros(k)
+    mdot_NO_sum_g = zeros(k)
+
     mdot_Ar_g = zeros(r,k)
     mdot_N2_g = zeros(r,k)
     mdot_O2_g = zeros(r,k)
-    Xarea_g = zeros(r,k)
-    rho_tot_g = zeros(r,k)
+    mdot_NO_g = zeros(r,k)
+    mdot_tot_g = zeros(k)
+
     MFar_g = zeros(r,k)
     MFn2_g = zeros(r,k)
     MFo2_g = zeros(r,k)
-    mdot_tot_g = zeros(k)
-    println("started xy plot")
+    MFno_g = zeros(r,k)
 
+    Xarea_g = zeros(r,k)
+    rho_tot_g = zeros(r,k)
+
+    println("started xy plot")
     # IN XY COORDINATES
     for i = 1:k, j = 1:(r-1)
         rho_tot_g[j,i] = P_atm/(R*T_g[j,i]) #[kg/m^3] #need to convert to xx yy coordinates
         MFar_g[j,i] = (χ_gAr[j,i]*(1/28.97)*(39.9))/1000000 #[kg/kg tot]
         MFn2_g[j,i] = (χ_gN2[j,i]*(1/28.97)*(28))/1000000 #[kg/kg tot]
         MFo2_g[j,i] = (χ_gO2[j,i]*(1/28.97)*(32))/1000000 #[kg/kg tot]
+        MFno_g[j,i] = (χ_gNO[j,i]*(1/28.97)*(30))/1000000 #[kg/kg tot]
         Xarea_g[j,i] = pi*(yy[j+1]^2 - yy[j]^2)
         mdot_Ar_g[j,i] = Xarea_g[j,i]*MFar_g[j,i]*rho_tot_g[j,i]*u_g[j,i]
         mdot_N2_g[j,i] = Xarea_g[j,i]*MFn2_g[j,i]*rho_tot_g[j,i]*u_g[j,i]
         mdot_O2_g[j,i] = Xarea_g[j,i]*MFo2_g[j,i]*rho_tot_g[j,i]*u_g[j,i]
+        mdot_NO_g[j,i] = Xarea_g[j,i]*MFno_g[j,i]*rho_tot_g[j,i]*u_g[j,i]
 
         #TODO: populate the last entry of sum arrays (stops at s-1)
         mdot_O2_sum_g[i] += mdot_O2_g[j,i]
         mdot_N2_sum_g[i] += mdot_N2_g[j,i]
         mdot_Ar_sum_g[i] += mdot_Ar_g[j,i]
+        mdot_NO_sum_g[i] += mdot_NO_g[j,i]
         mdot_tot_g[i] += mdot_Ar_g[j,i] + mdot_N2_g[j,i] + mdot_O2_g[j,i]
     end
 
@@ -140,6 +149,7 @@ function plotting(job_id::String)
     mdot_Ar_g[length(yy),:] = mdot_Ar_g[length(yy)-1,:]
     mdot_N2_g[length(yy),:] = mdot_N2_g[length(yy)-1,:]
     mdot_O2_g[length(yy),:] = mdot_O2_g[length(yy)-1,:]
+    mdot_NO_g[length(yy),:] = mdot_NO_g[length(yy)-1,:]
     println("populated last gridded index")
     
     fig,axT = plt.subplots()
@@ -205,25 +215,29 @@ function plotting(job_id::String)
     fig.suptitle("Species ppm (all rings)")
     fig.tight_layout()
     savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_ppm_tot.png")
-    
+
+    println(mdot_Ar_sum_g)
     fig,axXg = plt.subplots(2,2)
-    custom_xlim = (0,250)
+    custom_xlim = (0,100)
     plt.setp(axXg, xlim=custom_xlim)
-    axXg[1,1].plot(xx[1:250], mdot_tot_g[1:250])
+    axXg[1,1].plot(xx, mdot_tot_g)
     axXg[1,1].set_xlabel("x")
     axXg[1,1].set_ylabel("Total mass flow rate [kg/s]")
     axXg[1,1].set_title("Total mdot")
-    axXg[1,2].plot(xx[1:250], mdot_N2_sum_g[1:250])
+    axXg[1,2].plot(xx, mdot_N2_sum_g)
     axXg[1,2].set_xlabel("x")
     axXg[1,2].set_ylabel("N2 mass flow rate [kg/s]")
     axXg[1,2].set_title("N2")
-    axXg[2,1].plot(xx[1:250], mdot_O2_sum_g[1:250])
+    axXg[2,1].plot(xx, mdot_O2_sum_g)
     axXg[2,1].set_xlabel("x")
     axXg[2,1].set_ylabel("O2 mass flow rate [kg/s]")
-    axXg[2,2].plot(xx[1:250], mdot_Ar_sum_g[1:250])
+    axXg[2,2].plot(xx, mdot_Ar_sum_g)
     axXg[2,2].set_xlabel("x")
     axXg[2,2].set_ylabel("Ar mass flow rate [kg/s]")
     axXg[2,2].set_title("Ar")
+    # axXg[2,2].set_xlabel("x")
+    # axXg[2,2].set_ylabel("NO mass flow rate [kg/s]")
+    # axXg[2,2].set_title("NO")
     fig.suptitle("Total Mass Flow (all rings)")
     fig.tight_layout()
     savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_mdot_tot_g.png")

@@ -247,9 +247,9 @@ Maps back solution from a grid in ϕ-ψ space to a grid in x-y space.
 - `y_spacing` Desired spacing in `y` direction for output grid
 """
 function regrid_solution(x::Array, y::Array, u::Array,
-    T::Array, χ::Array)
+    T::Array, χ::Array, s::Int)
 
-    y_spacing = maximum(y)/199
+    y_spacing = maximum(y)/(s-1)
 
     yy = 0:y_spacing:maximum(y)
 
@@ -341,7 +341,7 @@ function solve_reaction(χ_h0, T, Δϕ, ϵ, u, gas, j, χ_1, s, n_species, gas_p
     reactor = ct.IdealGasConstPressureReactor(gas)
 
     #FOR NO REACTIONS
-    gas.set_multiplier(0)
+    #gas.set_multiplier(0)
 
     states = ct.SolutionArray(gas)
 
@@ -357,7 +357,6 @@ function solve_reaction(χ_h0, T, Δϕ, ϵ, u, gas, j, χ_1, s, n_species, gas_p
         reactor.syncState()
         reactorNet = ct.ReactorNet([reactor])
         t_final = Δϕ / (u[i] * abs(ϵ))
-        t = 0
 
         reactorNet.advance(t_final, apply_limit=false)
 
