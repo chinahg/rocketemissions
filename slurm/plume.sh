@@ -16,15 +16,15 @@
 
 n=$11000
 s=$22000
-psi_init=$30.00001
-phi_init=$40.00001
-psi_mult=$51.01
-phi_mult=$61.01
+psi_init=$30.001
+phi_init=$40.001
+psi_mult=$51.001
+phi_mult=$61.0
 job_id=$SLURM_JOBID
 set_T=$8imported #imported or ambient
 set_u=$9imported #imported or ambient
 
-echo "Cantera"
+echo "Cantera, A2NOx.yaml"
 echo "Job ID: $job_id"
 echo "Setting s = $s and n = $n"
 echo "psi_init = $psi_init, phi_init = $phi_init"

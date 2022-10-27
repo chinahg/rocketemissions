@@ -19,7 +19,7 @@ ct = pyimport("cantera")
 
 ENV["PYTHON"] = "/opt/conda/envs/lae2020/bin/python"
 # Pkg.build("PyCall")
-
+ENV["CANTERA_DATA"] = "/home/chinahg/GCresearch/rocketemissions/"
 include("plumefunctions.jl")
 include("plume_plotting.jl")
 
@@ -172,7 +172,7 @@ for m = 1:lastindex(h)
     χ_1 = zeros(size(χ_init))
     
     # Create gas object to store Reactor output gas object state
-    gas = ct.Solution("gri30.yaml")
+    gas = ct.Solution("/home/chinahg/GCresearch/rocketemissions/A2NOx.yaml")
 
     # Create a dummy reactor to establish a global variable
     dummy_reactor = ct.IdealGasReactor(gas)
