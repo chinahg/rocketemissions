@@ -78,7 +78,7 @@ def shock_calc(M1, P1, T1, P_a):
    #T3 = T3T2*T2
     
     #Set new gas state
-    gasPlume4 = ct.Solution('gri30.yaml')
+    gasPlume4 = ct.Solution('h2o2.yaml')
     gasPlume4.TP = T3, P3
 
     state = ct.SolutionArray(gasPlume4, extra=['M4'])

@@ -20,14 +20,14 @@ def combustion_chamber(P_CC0, V_CC, mdot_ox, mdot_f):
     #WSR
 
     #Create Gas Mixture
-    gasExhaust = ct.Solution('gri30.yaml')
+    gasExhaust = ct.Solution('h2o2.yaml')
     gasExhaust.TPY = 300, P_CC0, 'O2: 6, H2:1'
     gasExhaust.equilibrate('HP')
     #print(gasExhaust.report())
     
-    gasFuel = ct.Solution('gri30.yaml') #ct.Hydrogen()
+    gasFuel = ct.Solution('h2o2.yaml') #ct.Hydrogen()
     gasFuel.TPX = 20.15, 227527, 'H2:1' #https://science.ksc.nasa.gov/shuttle/technology/sts-newsref/et.html#:~:text=LIQUID%20HYDROGEN%20TANK,-The%20liquid%20hydrogen&text=Its%20operating%20pressure%20range%20is,to%20the%20left%20aft%20umbilical.
-    gasOx = ct.Solution('gri30.yaml') #ct.Oxygen()
+    gasOx = ct.Solution('h2o2.yaml') #ct.Oxygen()
     gasOx.TPX = 90.15, 140000, 'O2:1'
     
     #Fuel and ox through low pressure turbopump and heat exchanger

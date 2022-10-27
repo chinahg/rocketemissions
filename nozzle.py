@@ -116,7 +116,7 @@ def nozzle_div(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot
     P0 = P_Noz1
 
     # Import the gas phase, read out key species indices:
-    gas = ct.Solution('gri30.yaml')
+    gas = ct.Solution('h2o2.yaml')
 
     nsp = 53 #nSpecies(gas)
 
