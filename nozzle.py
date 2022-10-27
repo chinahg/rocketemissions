@@ -98,10 +98,6 @@ def nozzle(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot_f):
     P_throat = P_t*(2*gamma-1)**(-gamma/(gamma-1))
     T_throat = T_t*(1/(2*gamma-1))
 
-    print("\nMACH NUMBER AT NOZZLE INLET: ", M_CC)
-    #print("\nTHROAT TEMPERATURE: ", T_throat)
-    #print("\nTHROAT PRESSURE: ", P_throat)
-
     #Call diverging section, return final gas state (end of nozzle)
     states_final = nozzle_div(T_throat, P_throat, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox,mdot_f)
     return(states_final) 
@@ -155,6 +151,5 @@ def nozzle_div(T_Noz1, P_Noz1, comp_Noz1, A_throat, A_exit, L_Noz, mdot_ox, mdot
         states.append(gas.state, x=solver.t)
 
         i = i+1
-        #print(i, solver.t, gas.report())
 
     return(states)
