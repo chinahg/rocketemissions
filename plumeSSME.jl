@@ -27,8 +27,7 @@ struct gas_type
     gas
 end
 
-println("started")
-n_species = 53
+n_species = 201
 upper = 20000 #[m]
 lower = 16000 #[m]
 space = convert(Int, (upper - lower) / 2000 + 1) #250
@@ -59,7 +58,6 @@ gas_g = StructArray{gas_type}(undef,s,n,length(h))
 gas_g .= [gas_type(0)]
 h_string = string(h[1])
 
-println("started populating phi and psi")
 Δϕ = ϕ_init * ones(n) #step size in phi
 for i = 2:n
     Δϕ[i] = ϕ_mult * Δϕ[i-1] #enlarge with each step by mult
@@ -70,8 +68,7 @@ for i = 2:s
     Δψ[i] = ψ_mult * Δψ[i-1] #enlarge with each step by mult
 end
 
-println("started altitude for loop")
-for m = 1:lastindex(h)
+Threads.@threads for m = 1:lastindex(h)
     h_string = string(h[m])
 
     ### IMPORT SHOCK EXIT CONDITIONS ###
@@ -79,7 +76,8 @@ for m = 1:lastindex(h)
     p_all = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/P")
     p = convert(AbstractFloat, p_all[2])
 
-    u_a = 1.11849E-19 * big(h[m])^5 - 1.14814E-14 * big(h[m])^4 + 4.22542E-10 * big(h[m])^3 - 6.92322E-06 * big(h[m])^2 + 6.58761E-02 * big(h[m]) + 5.37920E+01
+    u_a = 1.276E-11*big(h[m]^3) - 9.465E-07*(h[m]^2) + 4.308E-02*h[m] + 1.257E+02
+    #1.11849E-19 * big(h[m])^5 - 1.14814E-14 * big(h[m])^4 + 4.22542E-10 * big(h[m])^3 - 6.92322E-06 * big(h[m])^2 + 6.58761E-02 * big(h[m]) + 5.37920E+01
 
     #curve fit #a = ambient vel [m/s] (speed of rocket) 
     T_a = HDF5.h5read("/home/chinahg/GCresearch/rocketemissions/plot_data.h5", h_string * "m/T_a")
@@ -144,7 +142,6 @@ for m = 1:lastindex(h)
     χ_init = zeros(s, n_species)
 
     ### COMPUTE MOLE FRACTIONS IN PLUME ###
-    println("at radius allocation")
     i = y_init .>= radius
     for j = 1:lastindex(i) 
         if i[j] == 0 #if y position is less than the initial plume radius, assign plume conditions
@@ -177,7 +174,6 @@ for m = 1:lastindex(h)
     # Create a dummy reactor to establish a global variable
     dummy_reactor = ct.IdealGasReactor(gas)
     
-    println("starting splitting")
     for i = 1:n-1 #x
         
         for j = 1:n_species #species

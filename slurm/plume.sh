@@ -15,11 +15,11 @@
 #####################################
 
 n=$11000
-s=$22000
-psi_init=$30.001
+s=$23000
+psi_init=$30.005
 phi_init=$40.001
 psi_mult=$51.001
-phi_mult=$61.0
+phi_mult=$61.001
 job_id=$SLURM_JOBID
 set_T=$8imported #imported or ambient
 set_u=$9imported #imported or ambient

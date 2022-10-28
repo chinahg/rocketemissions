@@ -123,7 +123,6 @@ function plotting(job_id::String)
     Xarea_g = zeros(r,k)
     rho_tot_g = zeros(r,k)
 
-    println("started xy plot")
     # IN XY COORDINATES
     for i = 1:k, j = 1:(r-1)
         rho_tot_g[j,i] = P_atm/(R*T_g[j,i]) #[kg/m^3] #need to convert to xx yy coordinates
@@ -145,12 +144,10 @@ function plotting(job_id::String)
         mdot_tot_g[i] += mdot_Ar_g[j,i] + mdot_N2_g[j,i] + mdot_O2_g[j,i]
     end
 
-    println("populating last gridded index")
     mdot_Ar_g[length(yy),:] = mdot_Ar_g[length(yy)-1,:]
     mdot_N2_g[length(yy),:] = mdot_N2_g[length(yy)-1,:]
     mdot_O2_g[length(yy),:] = mdot_O2_g[length(yy)-1,:]
     mdot_NO_g[length(yy),:] = mdot_NO_g[length(yy)-1,:]
-    println("populated last gridded index")
     
     fig,axT = plt.subplots()
     im = axT.imshow(T[:,:,m], cmap="summer")

@@ -359,7 +359,7 @@ function solve_reaction(χ_h0, T, Δϕ, ϵ, u, gas, j, χ_1, s, n_species, gas_p
         t_final = Δϕ / (u[i] * abs(ϵ))
 
         reactorNet.advance(t_final, apply_limit=false)
-
+        
         states.append(reactor.thermo.state)
 
         χ_1[i, :] = 10^6 .* reactor.thermo.X #mole fraction to ppm state.X[len,:] 10^9 #kmol/m^3s, assume 1 m^3, to ppm #rates for specific y (i) and all species UNITS
