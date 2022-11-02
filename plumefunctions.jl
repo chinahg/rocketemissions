@@ -47,7 +47,7 @@ from applying the Crank-Nicholson scheme to the governing equations.
 - `χ` Mixing ratio of passive tracer
 """
 function construct_rhs(u::AbstractVector, T::AbstractVector, y::AbstractVector,
-    Δψ::AbstractVector, Δϕ::AbstractFloat, ambient::AmbientConditions)
+    Δψ::AbstractVector, Δϕ::AbstractFloat, ambient::AmbientConditions, ϵ::Float64)
 
     b = zeros(size(u)[1] + size(T)[1])
     
@@ -66,9 +66,11 @@ function construct_rhs(u::AbstractVector, T::AbstractVector, y::AbstractVector,
 
     # Loop through b 
     for i = 2:size(u)[1]-1
-        b[i] = u[i] / Δϕ + 0.5 * λ * y[i]^2 * second_order_central(u, i, Δψ[i])
-        b[i+size(u)[1]] = (T[i] / Δϕ + 0.5 * λ * y[i]^2
-                                       * second_order_central(T, i, Δψ[i]) / ambient.Pr)
+        b[i] = u[i] / Δϕ + 0.5 * (ambient.u0 /ambient.T0^2) * y[i]^2 * second_order_central(u, i, Δψ[i])
+        b[i+size(u)[1]] = (T[i] / Δϕ + 0.5 * (ambient.u0 /ambient.T0^2) * y[i]^2
+                        * second_order_central(T, i, Δψ[i]) / ambient.Pr) +
+                        ((y[i]^2 *(ambient.u0 + ϵ*u[i]))/(ambient.T0 + ϵ*T[i])) * 
+                        second_order_central(u, i, Δψ[i])
     end
 
     return b
@@ -85,21 +87,22 @@ from applying the Crank-Nicholson scheme to the governing equations.
 - `y` y-locations of grid points 
 - `ambient` Ambient conditions
 """
-function construct_tridiagonal_matrix(n::Integer, Δψ::AbstractVector,
-    Δϕ::AbstractFloat, y::AbstractVector, ambient::AmbientConditions;)
+function construct_tridiagonal_matrix(s::Integer, Δψ::AbstractVector,
+    Δϕ::AbstractFloat, y::AbstractVector, ambient::AmbientConditions, 
+    u::Array, ϵ::Float64, T_mem::Array;)
 
-    A = zeros((2 * n, 2 * n))
+    A = zeros((2 * s, 2 * s))
 
     ## Boundary conditions 
     # Neumann conditions at y=0
     A[1, 1] = (-1 / (Δψ[1]))
     A[1, 2] = 1 / (Δψ[1])
-    A[n+1, n+1] = -1 / Δψ[1]
-    A[n+1, n+2] = 1 / Δψ[1]
+    A[s+1, s+1] = -1 / Δψ[1]
+    A[s+1, s+2] = 1 / Δψ[1]
 
     # Dirichlet conditions at y -> infinity 
-    A[n, n] = 1.0
-    A[2*n, 2*n] = 1.0
+    A[s,s] = 1.0
+    A[2*s, 2*s] = 1.0
 
     # Definition for convenience 
     λ = ambient.u0 / ((ambient.R / ambient.p)^2 * ambient.T0^2)
@@ -107,19 +110,24 @@ function construct_tridiagonal_matrix(n::Integer, Δψ::AbstractVector,
     Pr = ambient.Pr
     Le = ambient.Le
 
-    # Loop through matrix 
-    for i = 2:n-1
+    # Loop through matrix
+    println("s = ",s) 
+    for i = 2:s-1
 
         # For u 
-        A[i, i] = 1 / Δϕ + λ * y[i]^2 / (Δψ[i]^2)
-        A[i, i-1] = -λ * y[i]^2 / (2 * Δψ[i]^2)
-        A[i, i+1] = -λ * y[i]^2 / (2 * Δψ[i]^2)
+        A[i, i] = 1 / Δϕ + (ambient.u0 /ambient.T0^2) * y[i]^2 / (Δψ[i]^2)
+        A[i, i-1] = -(ambient.u0 /ambient.T0^2) * y[i]^2 / (2 * Δψ[i]^2)
+        A[i, i+1] = -(ambient.u0 /ambient.T0^2) * y[i]^2 / (2 * Δψ[i]^2)
 
         # For T
-        j = i + n
-        A[j, j] = 1 / Δϕ + λ * y[i]^2 / (Pr * Δψ[i]^2)
-        A[j, j-1] = -λ * y[i]^2 / (2 * Pr * Δψ[i]^2)
-        A[j, j+1] = -λ * y[i]^2 / (2 * Pr * Δψ[i]^2)
+        j = i + s
+
+        A[j, j-4] = ((Δϕ*ambient.p*(y[i]^2)*(ambient.u0 + ϵ*u[i]))/(ambient.T0 + ϵ*T_mem[i]))*(1/Δψ[i]^2) #u i+1,j-1
+        A[j, j-3] = -((Δϕ*ambient.p*(y[i]^2)*(ambient.u0 + ϵ*u[i]))/(ambient.T0 + ϵ*T_mem[i]))*(2/Δψ[i]^2) #u i+1,j
+        A[j, j-2] = -((Δϕ*ambient.p*(y[i]^2)*(ambient.u0 + ϵ*u[i]))/(ambient.T0 + ϵ*T_mem[i]))*(1/Δψ[i]^2) #u i+1,j+1
+        A[j, j] = 1 / Δϕ + 0.5*(ambient.u0/ambient.T0^2) * y[i]^2 / (Pr * Δψ[i]^2)
+        A[j, j-1] = -(ambient.u0/ambient.T0^2) * y[i]^2 / (2 * Pr * Δψ[i]^2)
+        A[j, j+1] = -(ambient.u0/ambient.T0^2) * y[i]^2 / (2 * Pr * Δψ[i]^2)
     end
 
     return A
@@ -208,7 +216,7 @@ function solve_exhaust_flow(u_init::AbstractVector, T_init::AbstractVector,
     ambient::AmbientConditions, n::Integer, Δϕ::AbstractVector,
     Δψ::AbstractVector)
 
-    
+    println("before construct, n = ", n)
     u_mem = zeros((size(u_init)[1], n))
     T_mem = zeros((size(u_init)[1], n))
     y_mem = zeros((size(u_init)[1], n))
@@ -217,16 +225,15 @@ function solve_exhaust_flow(u_init::AbstractVector, T_init::AbstractVector,
     ϵ = zeros(n)
 
     @inbounds for i = 1:n-1
-        
+        ϵ[i] = get_ϵ(0.02, @view(u_mem[:, i]), @view(y_mem[:, i]))
         y_mem[:, i] = compute_y(@view(u_mem[:, i]), @view(T_mem[:, i]), Δψ, ambient.R, ambient.p)
 
-        A = construct_tridiagonal_matrix(size(u_init)[1], Δψ, Δϕ[i], @view(y_mem[:, i]), ambient)
-        b = construct_rhs(@view(u_mem[:, i]), @view(T_mem[:, i]), @view(y_mem[:, i]), Δψ, Δϕ[i], ambient)
+        A = construct_tridiagonal_matrix(size(u_init)[1], Δψ, Δϕ[i], @view(y_mem[:, i]), ambient, u_mem, ϵ[i], T_mem)
+        b = construct_rhs(@view(u_mem[:, i]), @view(T_mem[:, i]), @view(y_mem[:, i]), Δψ, Δϕ[i], ambient, ϵ[i])
         sol = A \ b
         u_mem[:, i+1] = sol[1:size(u_init)[1]]
         T_mem[:, i+1] = sol[size(u_init)[1]+1:end]
         
-        ϵ[i] = get_ϵ(0.02, @view(u_mem[:, i]), @view(y_mem[:, i]))
     end
 
     y_mem[:, n] = y_mem[:, n-1]
@@ -356,6 +363,7 @@ function solve_reaction(χ_h0, T, Δϕ, ϵ, u, gas, j, χ_1, s, n_species, gas_p
 
         reactor.syncState()
         reactorNet = ct.ReactorNet([reactor])
+        println("ϵ = ", ϵ)
         t_final = Δϕ / (u[i] * abs(ϵ))
 
         reactorNet.advance(t_final, apply_limit=false)

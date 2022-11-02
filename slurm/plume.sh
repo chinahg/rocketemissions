@@ -2,7 +2,7 @@
                                             
 
 #SBATCH --time=48:00:00
-#SBATCH --job-name="1000x2000"
+#SBATCH --job-name="5000x2000"
 #SBATCH --mail-user=chinahg@mit.edu
 #SBATCH --mail-type=BEGIN,END
 #SBATCH -o slurm-%j.out
@@ -15,16 +15,16 @@
 #####################################
 
 n=$11000
-s=$23000
-psi_init=$30.005
+s=$22000
+psi_init=$30.0001
 phi_init=$40.001
-psi_mult=$51.001
-phi_mult=$61.001
+psi_mult=$51.01
+phi_mult=$61.01
 job_id=$SLURM_JOBID
 set_T=$8imported #imported or ambient
 set_u=$9imported #imported or ambient
 
-echo "Cantera, A2NOx.yaml"
+echo "Energy, Cantera, A2NOx.yaml"
 echo "Job ID: $job_id"
 echo "Setting s = $s and n = $n"
 echo "psi_init = $psi_init, phi_init = $phi_init"

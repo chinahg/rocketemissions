@@ -113,6 +113,7 @@ Threads.@threads for m = 1:lastindex(h)
    
     ambient = AmbientConditions(u_a, T_a, 1.0, 1.0, R, p, T0, u0)
 
+    println("before solve exhaust: n = ", n)
     #Solve for T and u at all steps: NO CHEMISTRY
     x, y, u, T, ϵ = solve_exhaust_flow(u_init, T_init, ambient, n, Δϕ, Δψ)
 

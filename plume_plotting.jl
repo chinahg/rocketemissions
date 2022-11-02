@@ -213,7 +213,6 @@ function plotting(job_id::String)
     fig.tight_layout()
     savefig("/home/chinahg/GCresearch/rocketemissions/rockettests/" * h_string * "m/" * job_id * "_ppm_tot.png")
 
-    println(mdot_Ar_sum_g)
     fig,axXg = plt.subplots(2,2)
     custom_xlim = (0,100)
     plt.setp(axXg, xlim=custom_xlim)
