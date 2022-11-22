@@ -103,7 +103,7 @@ Threads.@threads for m = 1:lastindex(h)
     u_init = u0 .* ones(s)
     T_init = T0 .* ones(s)
 
-    R = 287.0
+    R = 8.314/(0.02896) #[J/molK]/[kg/mol] = [J/kgK], dry air
     y_init = compute_y(u_init, T_init, Δψ, R, p)
 
     #Geometry of plume
@@ -136,8 +136,8 @@ Threads.@threads for m = 1:lastindex(h)
 
     χ_a[48] = 780790 #ppm N2
     χ_a[4] = 209445 #ppm O2
-    χ_a[49] = 9339 #ppm Ar #CHANGE BACK AFTER DEBUG TO 9339
-    χ_a[16] = 426 #ppm CO2 426
+    χ_a[49] = 0 #ppm Ar #CHANGE BACK AFTER DEBUG TO 9339
+    χ_a[16] = 9765 #ppm CO2 426 #CHANGE BACK
 
     χ_init = zeros(s, n_species)
 
@@ -145,9 +145,10 @@ Threads.@threads for m = 1:lastindex(h)
     i = y_init .>= radius
     for j = 1:lastindex(i) 
         if i[j] == 0 #if y position is less than the initial plume radius, assign plume conditions
-            for k = 1:n_species
-                χ_init[j, k] = χ0[k] #initial plume conditions
-            end
+            #for k = 1:n_species
+            #    χ_init[j, k] = χ0[k] #initial plume conditions
+            #end
+            χ_init[j,49] = 1000000
         else #if y position is greater than the initial plume radius, assign ambient conditions
             χ_init[j, 48] = χ_a[48]
             χ_init[j, 4] = χ_a[4]
@@ -174,11 +175,13 @@ Threads.@threads for m = 1:lastindex(h)
     # Create a dummy reactor to establish a global variable
     dummy_reactor = ct.IdealGasReactor(gas)
     
+    
     for i = 1:n-1 #x
-        
+### UPDATE ALL Rs
+        Rk = 8.314/(gas.molecular_weights/1000) #[J/kgK]/[kg/kmol]/1000=[J/molK]
         for j = 1:n_species #species
             #calculate f0 at half step 0.5*Δϕ (x)
-            χ_h0[:, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ[:, i, j], i, j)
+            χ_h0[:, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ[:, i, j], i, j, Rk)
             # concentration of species j at x = i and y = all
         end
 
@@ -186,9 +189,10 @@ Threads.@threads for m = 1:lastindex(h)
         gas_g.gas[:,i+1,m] .= save_tuple[2]
         χ_1 = save_tuple[1]
 
+        Rk = 8.314/(gas.molecular_weights/1000) #[J/kgK]/[kg/kmol]/1000=[J/molK]
         for j = 1:n_species-1 #species
             #calculate f0 at full step Δϕ
-            χ[:, i+1, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ_h0[:, j], i, j)
+            χ[:, i+1, j] = solve_exhaust_flow_χ(u[:, i], T[:, i], ambient, n, 0.5 * Δϕ[i], Δψ, χ_h0[:, j], i, j, Rk)
         end
 
         i = i + 1

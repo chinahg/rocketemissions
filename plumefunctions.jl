@@ -143,7 +143,7 @@ function compute_y(u::AbstractVector, T::AbstractVector, Δψ::AbstractVector,
     catch
         println(T,u)
     end
-    return (2 * cumsum((R / p) * T ./ u) .* Δψ) .^ 0.5
+    return (2 * cumsum((R / p) * T ./ u) .* Δψ) .^ 0.5 #MAYBE R and p are the issue?
 end
 
 """
@@ -424,13 +424,13 @@ function construct_rhs_χ(u, T, y, Δψ, Δϕ, ambient::AmbientConditionsχ, χ,
 end
 
 function solve_exhaust_flow_χ(u_mem, T_mem, ambient::AmbientConditionsχ, n::Integer,
-    Δϕ, Δψ::AbstractVector, χ_init, i, j)
+    Δϕ, Δψ::AbstractVector, χ_init, i, j, R)
 
     y_mem = zeros(size(u_mem))
 
     χ_mem = χ_init
 
-    y_mem = compute_y(u_mem, T_mem, Δψ, ambient.R, ambient.p)
+    y_mem = compute_y(u_mem, T_mem, Δψ, R, ambient.p)
 
     A = construct_tridiagonal_matrix_χ(size(u_mem)[1], Δψ, Δϕ, y_mem, ambient)
     
