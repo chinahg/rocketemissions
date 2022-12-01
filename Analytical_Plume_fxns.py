@@ -47,19 +47,18 @@ def diffusion(nx, nr, xmax, r_ZFE, r_ZEF, nT, T_a, T0, flag):
    dx = xmax/(nx-1)
 
    for i in range(nx):
-      dr[i] = r[i,np.size(r[i,:])-1]/(nr-1)
+      dr[i] = r[i,nr-1]/(nr-1)
    
-
    # Initialise data structures
-   T = np.zeros((nr,nx))
+   T = np.zeros((nx,nr))
 
    # Boundary conditions
-   T[0,:] = T[nr-1,:] = T_a
+   T[:,0] = T[:,nr-1] = T_a #[x,r]
     
    # Initial conditions
-   for i in range(1,nr-1):
-      rmax = r[i,np.size(r[i,:])-1]
-      if(r[i-1, rmax] + dr > (rmax/2)-1.45 and r[i-1, rmax] + dr < (rmax/2)+1.45):
+   for i in range(1,nx-1):
+      rmax = r[i,nr-1]
+      if(r[i-1, nr-1] + dr[i] > (rmax/2)-1.45 and r[i-1, nr-1] + dr[i] < (rmax/2)+1.45):
          T[i,0] = T0
       else:
          T[i,0] = T_a
@@ -67,11 +66,11 @@ def diffusion(nx, nr, xmax, r_ZFE, r_ZEF, nT, T_a, T0, flag):
    # Loop
    for n in range(0,nx-1):
       for i in range(0,nr-1):
-         T[i,n+1] = T[i,n] + nT*(dx/dr**2.0)*(T[i+1,n]-2.0*T[i,n]+T[i-1,n])
+         T[n+1,i] = T[n,i] + nT*(dx/dr[n]**2.0)*(T[n,i+1]-2.0*T[n,i]+T[n,i-1])
 
    return T, r
 
-def plot_diffusion(T,r,nx,xmax,title):
+def plot_diffusion(T,r,nx,nr,xmax,title):
    """
    Plots the 1D velocity field
    """
@@ -79,9 +78,9 @@ def plot_diffusion(T,r,nx,xmax,title):
    import matplotlib.cm as cm
    plt.figure()
    colour=iter(cm.rainbow(np.linspace(0,xmax,nx)))
-   for i in range(0,nx):
+   for i in range(0,nx-1):
       c=next(colour)
-      plt.plot(r-100,T[:,i],c=c)
+      plt.plot(r[i,:],T[i,:],c=c)
    plt.xlabel('r (m)')
    plt.ylabel('T (K)')
    plt.title(title)
@@ -183,10 +182,6 @@ def compute_ZEF(U0, C0, U_a, r0, nx_ZFE, nx_ZEF, r_ZEF, xmax_ZFE, xmax_ZEF, nr, 
            u_ZEF[i,j] = U[i]*np.exp((-(r_ZEF[i,j]-miu_u)**2)/(2*sigma_ZEFu[i]**2))
            c_ZEF[i,j] = C_m[i]*np.exp((-(r_ZEF[i,j]-miu_c)**2)/(2*sigma_ZEFc[i]**2))
 
-#           if j == 0:
-#                u_ZEF0[i+1] = u_ZEF[i,0]
-#                c_ZEF0[i+1] = c_ZEF[i,0]
-   print(sigma_ZEFc)
    return u_ZEF, c_ZEF, r_ZEF
 
 def solve_reaction(X, T, P, x_1, x_2, u_1, u_2, gas, j, n_species):

@@ -9,8 +9,8 @@ phases:
 - name: gas
   thermo: ideal-gas
   elements: [O, H, N, Ar]
-  species: H2, O2, H, OH, HO2, N2, O, H2O, H2O2, AR, 
-    OH*, HE, NO, NO2, NH3, NH2, NH, N, NNH, N2H4, N2H3, N2H2, H2NN, 
+  species: [H2, O2, H, OH, HO2, N2, O, H2O, H2O2, AR, 
+    OH*, NO, NO2, NH3, NH2, NH, N, NNH, N2H4, N2H3, N2H2, H2NN, 
     NH2OH,H2NO, HNOH, HNO, HON, HONO, HNO2, NO3, HONO2, N2O]
   kinetics: gas
   reactions: all
@@ -583,31 +583,29 @@ reactions:
 - equation: H + H + M <=> H2 + M  # Reaction 12
   type: three-body
   rate-constant: {A: 1.78e+18, b: -1.0, Ea: 0.0}
-  efficiencies: {H2: 0.0, H2O: 0.0, CO2: 0.0, AR: 0.63, HE: 0.63}
+  efficiencies: {H2: 0.0, H2O: 0.0, AR: 0.63}
 - equation: H + H + H2 <=> H2 + H2  # Reaction 13
   rate-constant: {A: 9.0e+16, b: -0.6, Ea: 0.0}
 - equation: H + H + H2O <=> H2 + H2O  # Reaction 14
   rate-constant: {A: 5.624e+19, b: -1.25, Ea: 0.0}
-- equation: H + H + CO2 <=> H2 + CO2  # Reaction 15
-  rate-constant: {A: 5.5e+20, b: -2.0, Ea: 0.0}
 - equation: H + OH + M <=> H2O + M  # Reaction 16
   type: three-body
   rate-constant: {A: 4.4e+22, b: -2.0, Ea: 0.0}
-  efficiencies: {CO2: 3.6, CO: 1.75, H2: 2.0, H2O: 6.3, AR: 0.38, HE: 0.38}
+  efficiencies: {H2: 2.0, H2O: 6.3, AR: 0.38}
 - equation: O + H + M <=> OH + M  # Reaction 17
   type: three-body
   rate-constant: {A: 9.428e+18, b: -1.0, Ea: 0.0}
-  efficiencies: {CO2: 3.6, CO: 1.75, H2: 2.0, H2O: 12.0, AR: 0.7, HE: 0.7}
+  efficiencies: {H2: 2.0, H2O: 12.0, AR: 0.7}
 - equation: O + O + M <=> O2 + M  # Reaction 18
   type: three-body
   rate-constant: {A: 1.2e+17, b: -1.0, Ea: 0.0}
-  efficiencies: {CO2: 3.6, CO: 1.75, H2: 2.4, H2O: 15.4, AR: 0.83, HE: 0.83}
+  efficiencies: {H2: 2.4, H2O: 15.4, AR: 0.83}
 - equation: H + O2 (+ M) <=> HO2 (+ M)  # Reaction 19
   type: falloff
   low-P-rate-constant: {A: 6.328e+19, b: -1.4, Ea: 0.0}
   high-P-rate-constant: {A: 5.116e+12, b: 0.44, Ea: 0.0}
   Troe: {A: 0.5, T3: 1.0e-30, T1: 1.0e+30}
-  efficiencies: {CO2: 2.18, CO: 1.09, H2O: 11.89, AR: 0.4, O2: 0.85, HE: 0.46}
+  efficiencies: {H2O: 11.89, AR: 0.4, O2: 0.85}
 - equation: H2 + O2 <=> HO2 + H  # Reaction 20
   rate-constant: {A: 5.916e+05, b: 2.433, Ea: 5.3502e+04}
 - equation: OH + OH (+ M) <=> H2O2 (+ M)  # Reaction 21
@@ -615,7 +613,7 @@ reactions:
   low-P-rate-constant: {A: 2.01e+17, b: -0.584, Ea: -2293.0}
   high-P-rate-constant: {A: 1.11e+14, b: -0.37, Ea: 0.0}
   Troe: {A: 0.7346, T3: 94.0, T1: 1756.0, T2: 5182.0}
-  efficiencies: {CO2: 3.6, CO: 1.75, H2: 2.0, H2O: 6.0, AR: 0.7, HE: 0.7}
+  efficiencies: {H2: 2.0, H2O: 6.0, AR: 0.7}
 - equation: HO2 + H <=> O + H2O  # Reaction 22
   rate-constant: {A: 3.97e+12, b: 0.0, Ea: 671.0}
 - equation: HO2 + H <=> OH + OH  # Reaction 23
@@ -670,12 +668,6 @@ reactions:
   rate-constant: {A: 5.92e+12, b: 0.5, Ea: -861.0}
 - equation: OH* + H2 <=> OH + H2  # Reaction 837
   rate-constant: {A: 2.95e+12, b: 0.5, Ea: -444.0}
-- equation: OH* + CO2 <=> OH + CO2  # Reaction 838
-  rate-constant: {A: 2.75e+12, b: 0.5, Ea: -968.0}
-- equation: OH* + CO <=> OH + CO  # Reaction 839
-  rate-constant: {A: 3.23e+12, b: 0.5, Ea: -787.0}
-- equation: OH* + CH4 <=> OH + CH4  # Reaction 840
-  rate-constant: {A: 3.36e+12, b: 0.5, Ea: -635.0}
 - equation: OH* + AR <=> OH + AR  # Reaction 841
   rate-constant: {A: 1.25e+10, b: 0.5, Ea: 0.0}
 - equation: NH2 + H (+ M) <=> NH3 (+ M)  # Reaction 842
