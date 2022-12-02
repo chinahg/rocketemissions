@@ -56,7 +56,7 @@ def diffusion(nx, nr, xmax, r_ZFE, r_ZEF, nT, T_a, T0, flag):
    T[:,0] = T[:,nr-1] = T_a #[x,r]
     
    # Initial conditions
-   for i in range(1,nx-1):
+   for i in range(0,nx-1):
       rmax = r[i,nr-1]
       if(r[i-1, nr-1] + dr[i] > (rmax/2)-1.45 and r[i-1, nr-1] + dr[i] < (rmax/2)+1.45):
          T[i,0] = T0
@@ -74,7 +74,8 @@ def plot_diffusion(T,r,nx,nr,xmax,title):
    """
    Plots the 1D velocity field
    """
-   import matplotlib.pyplot as plt
+   print(r[1,:])
+   print(T[1,:])
    import matplotlib.cm as cm
    plt.figure()
    colour=iter(cm.rainbow(np.linspace(0,xmax,nx)))

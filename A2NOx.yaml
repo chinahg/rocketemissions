@@ -9,9 +9,9 @@ phases:
 - name: gas
   thermo: ideal-gas
   elements: [O, H, N, Ar]
-  species: [H2, O2, H, OH, HO2, N2, O, H2O, H2O2, AR, 
+  species: [H2, H, O, O2, OH, H2O,  H2O2, HO2, AR, N2, 
     OH*, NO, NO2, NH3, NH2, NH, N, NNH, N2H4, N2H3, N2H2, H2NN, 
-    NH2OH,H2NO, HNOH, HNO, HON, HONO, HNO2, NO3, HONO2, N2O]
+    NH2OH, H2NO, HNOH, HNO, HON, HONO, HNO2, NO3, HONO2, N2O]
   kinetics: gas
   reactions: all
   transport: mixture-averaged
